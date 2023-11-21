@@ -7,7 +7,7 @@
 #ifndef _MJSTR_TEST_UNIT_STRING_VIEW_HPP_
 #define _MJSTR_TEST_UNIT_STRING_VIEW_HPP_
 #include <gtest/gtest.h>
-#include <mjstr/string.hpp>
+#include <mjstr/string_view.hpp>
 
 namespace mjx {
     namespace test {
