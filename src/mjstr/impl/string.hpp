@@ -11,6 +11,13 @@
 #include <mjstr/impl/utils.hpp>
 #include <type_traits>
 
+// prefer using UCRT intrinsics
+#pragma intrinsic(memcmp)
+#pragma intrinsic(memcpy)
+#pragma intrinsic(memset)
+#pragma intrinsic(strlen)
+#pragma intrinsic(wcslen)
+
 namespace mjx {
     namespace mjstr_impl {
         template <class _Elem, class _Comp_fn>
@@ -57,9 +64,6 @@ namespace mjx {
             return static_cast<size_t>(-1); // not found
         }
 
-#pragma intrinsic(strlen) // UCRT's strlen() intrinsic
-#pragma intrinsic(wcslen) // UCRT's wcslen() intrinsic
-
         struct _Utf8_string_traits { // traits for UTF-8 strings
             using _Char_type = char;
 
@@ -91,6 +95,11 @@ namespace mjx {
 #else // ^^^ _HAS_BUILTIN(__builtin_strncmp) ^^^ / vvv !_HAS_BUILTIN(__builtin_strncmp) vvv
                 return ::strncmp(_Left, _Right, _Left_size);
 #endif // _HAS_BUILTIN(__builtin_strncmp)
+            }
+
+            static void _Assign(_Char_type* const _Dest, const _Char_type _Ch, const size_t _Count) noexcept {
+#pragma warning(suppress : 4996) // C4996: Consider using _strnset()
+                ::strnset(_Dest, static_cast<int>(_Ch), _Count);
             }
 
             static void _Copy(
@@ -143,25 +152,44 @@ namespace mjx {
 
             static size_t _Equal(
                 const _Char_type* const _Left, const _Char_type* const _Right, const size_t _Count) noexcept {
-                return _Base_traits::_Equal(reinterpret_cast<const _Base_char_type*>(_Left),
-                    reinterpret_cast<const _Base_char_type*>(_Right), _Count);
+#if _HAS_BUILTIN(__builtin_memcmp)
+                return __builtin_memcmp(_Left, _Right, _Count) == 0;
+#else // ^^^ _HAS_BUILTIN(__builtin_memcmp) ^^^ / vvv !_HAS_BUILTIN(__builtin_memcmp) vvv
+                return ::memcmp(_Left, _Right, _Count) == 0;
+#endif // _HAS_BUILTIN(__builtin_memcmp)
             }
 
             static int _Compare(const _Char_type* const _Left, const size_t _Left_size,
                 const _Char_type* const _Right, const size_t _Right_size) noexcept {
-                return _Base_traits::_Compare(reinterpret_cast<const _Base_char_type*>(_Left),
-                    _Left_size, reinterpret_cast<const _Base_char_type*>(_Right), _Right_size);
+                if (_Left_size != _Right_size) {
+                    return _Left_size < _Right_size ? -1 : 1;
+                }
+
+#if _HAS_BUILTIN(__builtin_memcmp)
+                return __builtin_memcmp(_Left, _Right, _Left_size);
+#else // ^^^ _HAS_BUILTIN(__builtin_memcmp) ^^^ / vvv !_HAS_BUILTIN(__builtin_memcmp) vvv
+                return ::memcmp(_Left, _Right, _Left_size);
+#endif // _HAS_BUILTIN(__builtin_memcmp)
+            }
+
+            static void _Assign(_Char_type* const _Dest, const _Char_type _Ch, const size_t _Count) noexcept {
+                ::memset(_Dest, static_cast<int>(_Ch), _Count);
             }
 
             static void _Copy(
                 _Char_type* const _Dest, const _Char_type* const _Src, const size_t _Count) noexcept {
-                _Base_traits::_Copy(reinterpret_cast<_Base_char_type*>(_Dest),
-                    reinterpret_cast<const _Base_char_type*>(_Src), _Count);
+                ::memcpy(_Dest, _Src, _Count);
             }
 
             static size_t _Find(const _Char_type* const _Haystack, const _Char_type _Needle) noexcept {
-                return _Base_traits::_Find(reinterpret_cast<const _Base_char_type*>(_Haystack),
-                    static_cast<_Base_char_type>(_Needle));
+#if _HAS_BUILTIN(__builtin_memchr)
+                const _Char_type* const _Match = static_cast<const _Char_type*>(
+                    __builtin_memchr(_Haystack, static_cast<int>(_Needle), _Length(_Haystack)));
+#else // ^^^ _HAS_BUILTIN(__builtin_memchr) ^^^ / vvv !_HAS_BUILTIN(__builtin_memchr) vvv
+                const _Char_type* const _Match = static_cast<const _Char_type*>(
+                    ::memchr(_Haystack, static_cast<int>(_Needle), _Length(_Haystack)));
+#endif // _HAS_BUILTIN(__builtin_memchr)
+                return _Match ? _Match - _Haystack : static_cast<size_t>(-1);
             }
 
             static size_t _Find(const _Char_type* const _Haystack, const _Char_type* const _Needle) noexcept {
@@ -216,6 +244,11 @@ namespace mjx {
 #else // ^^^ _HAS_BUILTIN(__builtin_wcsncmp) ^^^ / vvv !_HAS_BUILTIN(__builtin_wcsncmp) vvv
                 return ::wcsncmp(_Left, _Right, _Left_size);
 #endif // _HAS_BUILTIN(__builtin_wcsncmp)
+            }
+
+            static void _Assign(_Char_type* const _Dest, const _Char_type _Ch, const size_t _Count) noexcept {
+#pragma warning(suppress : 4996) // C4996: Consider using _wcsnset()
+                ::wcsnset(_Dest, _Ch, _Count);
             }
 
             static void _Copy(
