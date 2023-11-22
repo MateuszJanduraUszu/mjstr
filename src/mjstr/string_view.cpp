@@ -28,36 +28,28 @@ namespace mjx {
 
     template <class _Elem>
     typename string_view_iterator<_Elem>::reference string_view_iterator<_Elem>::operator*() const noexcept {
-#ifdef _DEBUG
         _INTERNAL_ASSERT(_Myptr != nullptr && _Myptr != _Myend, "attempt to dereference invalid iterator");
-#endif // _DEBUG
         return *_Myptr;
     }
 
     template <class _Elem>
     typename string_view_iterator<_Elem>::pointer string_view_iterator<_Elem>::operator->() const noexcept {
-#ifdef _DEBUG
         _INTERNAL_ASSERT(_Myptr != nullptr && _Myptr != _Myend, "attempt to dereference invalid iterator");
-#endif // _DEBUG
         return _Myptr;
     }
 
     template <class _Elem>
     typename string_view_iterator<_Elem>::reference
         string_view_iterator<_Elem>::operator[](const difference_type _Off) const noexcept {
-#ifdef _DEBUG
         _INTERNAL_ASSERT(_Myptr != nullptr, "attempt to use invalid iterator");
         _INTERNAL_ASSERT(_Myend - _Myptr >= _Off, "attempt to access non-existent element");
-#endif // _DEBUG
         return _Myptr[_Off];
     }
 
     template <class _Elem>
     string_view_iterator<_Elem>& string_view_iterator<_Elem>::operator++() noexcept {
-#ifdef _DEBUG
         _INTERNAL_ASSERT(_Myptr != nullptr, "attempt to use invalid iterator");
         _INTERNAL_ASSERT(_Myend - _Myptr > 0, "attempt to advance iterator that points to the end")
-#endif // _DEBUG
         ++_Myptr;
         return *this;
     }
@@ -71,10 +63,8 @@ namespace mjx {
 
     template <class _Elem>
     string_view_iterator<_Elem>& string_view_iterator<_Elem>::operator--() noexcept {
-#ifdef _DEBUG
         _INTERNAL_ASSERT(_Myptr != nullptr, "attempt to use invalid iterator");
         _INTERNAL_ASSERT(_Myptr - _Mybegin > 0, "attempt to retreat iterator that points to the beginning");
-#endif // _DEBUG
         --_Myptr;
         return *this;
     }
@@ -88,20 +78,16 @@ namespace mjx {
 
     template <class _Elem>
     string_view_iterator<_Elem>& string_view_iterator<_Elem>::operator+=(const difference_type _Off) noexcept {
-#ifdef _DEBUG
         _INTERNAL_ASSERT(_Myptr != nullptr, "attempt to use invalid iterator");
         _INTERNAL_ASSERT(_Myend - _Myptr >= _Off, "attempt to advance iterator beyond the end");
-#endif // _DEBUG
         _Myptr += _Off;
         return *this;
     }
 
     template <class _Elem>
     string_view_iterator<_Elem>& string_view_iterator<_Elem>::operator-=(const difference_type _Off) noexcept {
-#ifdef _DEBUG
         _INTERNAL_ASSERT(_Myptr != nullptr, "attempt to use invalid iterator");
         _INTERNAL_ASSERT(_Myptr - _Mybegin >= _Off, "attempt to retreat iterator beyond the beginning");
-#endif // _DEBUG
         _Myptr -= _Off;
         return *this;
     }
