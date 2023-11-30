@@ -304,9 +304,6 @@ namespace mjx {
         struct _Choose_string_traits<wchar_t> {
             using _Traits = _Unicode_string_traits;
         };
-
-        template <class _Elem>
-        using _String_traits = typename _Choose_string_traits<_Elem>::_Traits;
     } // namespace mjstr_impl
 } // namespace mjx
 
