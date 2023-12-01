@@ -6,7 +6,7 @@
 #include <cstring>
 #include <cwchar>
 #include <mjstr/char_traits.hpp>
-#include <mjstr/impl/char_traits.hpp>
+#include <mjstr/impl/utils.hpp>
 
 // prefer using UCRT intrinsics
 #pragma intrinsic(memcmp)
