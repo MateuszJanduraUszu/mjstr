@@ -8,17 +8,9 @@
 #define _MJSTR_STRING_VIEW_HPP_
 #include <cstddef>
 #include <mjstr/api.hpp>
-#include <type_traits>
+#include <mjstr/char_traits.hpp>
 
 namespace mjx {
-    using byte_t = unsigned char; // byte representation (1-byte non-negative integer)
-
-    template <class _Ty, class... _Types>
-    inline constexpr bool _Is_any_of = ::std::disjunction_v<::std::is_same<_Ty, _Types>...>;
-
-    template <class _Elem>
-    inline constexpr bool _Is_valid_string_element = _Is_any_of<_Elem, byte_t, char, wchar_t>;
-
     template <class _Elem>
     class _MJSTR_API string_view_iterator { // random access iterator for string_view<CharT>
     public:
@@ -97,10 +89,11 @@ namespace mjx {
     using utf8_string_view_iterator    = string_view_iterator<char>;
     using unicode_string_view_iterator = string_view_iterator<wchar_t>;
 
-    template <class _Elem>
+    template <class _Elem, class _Traits = char_traits<_Elem>>
     class _MJSTR_API string_view { // lightweight non-owning read-only view of a string
     public:
-        static_assert(_Is_valid_string_element<_Elem>, "invalid string_view element type");
+        static_assert(_Validate_elem<_Elem>, "invalid element type for string_view<CharT, Traits>");
+        static_assert(_Validate_traits<_Elem, _Traits>, "invalid traits for string_view<CharT, Traits>");
 
         using value_type      = _Elem;
         using size_type       = size_t;
@@ -109,7 +102,8 @@ namespace mjx {
         using const_pointer   = const _Elem*;
         using reference       = _Elem&;
         using const_reference = const _Elem&;
-        
+        using traits_type     = _Traits;
+
         using const_iterator = string_view_iterator<_Elem>;
         using iterator       = const_iterator;
 
@@ -210,27 +204,29 @@ namespace mjx {
         size_type _Mysize;
     };
 
-    template <class _Elem>
-    _MJSTR_API bool operator==(const string_view<_Elem> _Left, const string_view<_Elem> _Right) noexcept;
+    using byte_string_view    = string_view<byte_t, char_traits<byte_t>>;
+    using utf8_string_view    = string_view<char, char_traits<char>>;
+    using unicode_string_view = string_view<wchar_t, char_traits<wchar_t>>;
 
-    template <class _Elem>
-    _MJSTR_API bool operator==(const string_view<_Elem> _Left, const _Elem* const _Right) noexcept;
+    template <class _Elem, class _Traits>
+    _MJSTR_API bool operator==(
+        const string_view<_Elem, _Traits> _Left, const string_view<_Elem, _Traits> _Right) noexcept;
 
-    template <class _Elem>
-    _MJSTR_API bool operator==(const _Elem* const _Left, const string_view<_Elem> _Right) noexcept;
+    template <class _Elem, class _Traits>
+    _MJSTR_API bool operator==(const string_view<_Elem, _Traits> _Left, const _Elem* const _Right) noexcept;
 
-    template <class _Elem>
-    _MJSTR_API bool operator!=(const string_view<_Elem> _Left, const string_view<_Elem> _Right) noexcept;
+    template <class _Elem, class _Traits>
+    _MJSTR_API bool operator==(const _Elem* const _Left, const string_view<_Elem, _Traits> _Right) noexcept;
 
-    template <class _Elem>
-    _MJSTR_API bool operator!=(const string_view<_Elem> _Left, const _Elem* const _Right) noexcept;
+    template <class _Elem, class _Traits>
+    _MJSTR_API bool operator!=(
+        const string_view<_Elem, _Traits> _Left, const string_view<_Elem, _Traits> _Right) noexcept;
 
-    template <class _Elem>
-    _MJSTR_API bool operator!=(const _Elem* const _Left, const string_view<_Elem> _Right) noexcept;
+    template <class _Elem, class _Traits>
+    _MJSTR_API bool operator!=(const string_view<_Elem, _Traits> _Left, const _Elem* const _Right) noexcept;
 
-    using byte_string_view    = string_view<byte_t>;
-    using utf8_string_view    = string_view<char>;
-    using unicode_string_view = string_view<wchar_t>;
+    template <class _Elem, class _Traits>
+    _MJSTR_API bool operator!=(const _Elem* const _Left, const string_view<_Elem, _Traits> _Right) noexcept;
 } // namespace mjx
 
 #endif // _MJSTR_STRING_VIEW_HPP_
