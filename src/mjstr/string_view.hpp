@@ -162,13 +162,8 @@ namespace mjx {
 
         // compares two views
         int compare(const string_view _Str) const noexcept;
-        int compare(size_type _Off, const size_type _Count, const string_view _Str) const noexcept;
-        int compare(const size_type _Off, const size_type _Count, const string_view _Str,
-            const size_type _Str_off, const size_type _Str_count) const noexcept;
+        int compare(const_pointer _Ptr, const size_type _Count) const noexcept;
         int compare(const_pointer _Ptr) const noexcept;
-        int compare(const size_type _Off, const size_type _Count, const_pointer _Ptr) const noexcept;
-        int compare(const size_type _Off, const size_type _Count,
-            const_pointer _Ptr, const size_type _Ptr_count) const noexcept;
 
         // checks if the string view starts with the given prefix
         bool starts_with(const string_view _Str) const noexcept;
@@ -209,24 +204,36 @@ namespace mjx {
     using unicode_string_view = string_view<wchar_t, char_traits<wchar_t>>;
 
     template <class _Elem, class _Traits>
-    _MJSTR_API bool operator==(
-        const string_view<_Elem, _Traits> _Left, const string_view<_Elem, _Traits> _Right) noexcept;
+    inline bool operator==(
+        const string_view<_Elem, _Traits> _Left, const string_view<_Elem, _Traits> _Right) noexcept {
+        return _Left.compare(_Right) == 0;
+    }
 
     template <class _Elem, class _Traits>
-    _MJSTR_API bool operator==(const string_view<_Elem, _Traits> _Left, const _Elem* const _Right) noexcept;
+    inline bool operator==(const string_view<_Elem, _Traits> _Left, const _Elem* const _Right) noexcept {
+        return _Left.compare(_Right) == 0;
+    }
 
     template <class _Elem, class _Traits>
-    _MJSTR_API bool operator==(const _Elem* const _Left, const string_view<_Elem, _Traits> _Right) noexcept;
+    inline bool operator==(const _Elem* const _Left, const string_view<_Elem, _Traits> _Right) noexcept {
+        return _Right.compare(_Left) == 0;
+    }
 
     template <class _Elem, class _Traits>
-    _MJSTR_API bool operator!=(
-        const string_view<_Elem, _Traits> _Left, const string_view<_Elem, _Traits> _Right) noexcept;
+    inline bool operator!=(
+        const string_view<_Elem, _Traits> _Left, const string_view<_Elem, _Traits> _Right) noexcept {
+        return !(_Left == _Right);
+    }
 
     template <class _Elem, class _Traits>
-    _MJSTR_API bool operator!=(const string_view<_Elem, _Traits> _Left, const _Elem* const _Right) noexcept;
+    inline bool operator!=(const string_view<_Elem, _Traits> _Left, const _Elem* const _Right) noexcept {
+        return !(_Left == _Right);
+    }
 
     template <class _Elem, class _Traits>
-    _MJSTR_API bool operator!=(const _Elem* const _Left, const string_view<_Elem, _Traits> _Right) noexcept;
+    inline bool operator!=(const _Elem* const _Left, const string_view<_Elem, _Traits> _Right) noexcept {
+        return !(_Left == _Right);
+    }
 } // namespace mjx
 
 #endif // _MJSTR_STRING_VIEW_HPP_

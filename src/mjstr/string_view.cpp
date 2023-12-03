@@ -288,32 +288,13 @@ namespace mjx {
     }
 
     template <class _Elem, class _Traits>
-    int string_view<_Elem, _Traits>::compare(
-        const size_type _Off, const size_type _Count, const string_view _Str) const noexcept {
-        return substr(_Off, _Count).compare(_Str);
-    }
-
-    template <class _Elem, class _Traits>
-    int string_view<_Elem, _Traits>::compare(const size_type _Off, const size_type _Count,
-        const string_view _Str, const size_type _Str_off, const size_type _Str_count) const noexcept {
-        return substr(_Off, _Count).compare(_Str.substr(_Str_off, _Str_count));
+    int string_view<_Elem, _Traits>::compare(const_pointer _Ptr, const size_type _Count) const noexcept {
+        return _Traits::compare(_Mydata, _Mysize, _Ptr, _Count);
     }
 
     template <class _Elem, class _Traits>
     int string_view<_Elem, _Traits>::compare(const_pointer _Ptr) const noexcept {
-        return compare(string_view{_Ptr});
-    }
-
-    template <class _Elem, class _Traits>
-    int string_view<_Elem, _Traits>::compare(
-        const size_type _Off, const size_type _Count, const_pointer _Ptr) const noexcept {
-        return substr(_Off, _Count).compare(string_view{_Ptr});
-    }
-
-    template <class _Elem, class _Traits>
-    int string_view<_Elem, _Traits>::compare(const size_type _Off, const size_type _Count,
-        const_pointer _Ptr, const size_type _Ptr_count) const noexcept {
-        return substr(_Off, _Count).compare(string_view{_Ptr, _Ptr_count});
+        return _Traits::compare(_Mydata, _Mysize, _Ptr, _Traits::length(_Ptr));
     }
 
     template <class _Elem, class _Traits>
@@ -469,60 +450,4 @@ namespace mjx {
     template _MJSTR_API class string_view<byte_t, char_traits<byte_t>>;
     template _MJSTR_API class string_view<char, char_traits<char>>;
     template _MJSTR_API class string_view<wchar_t, char_traits<wchar_t>>;
-
-    template <class _Elem, class _Traits>
-    bool operator==(const string_view<_Elem, _Traits> _Left,
-        const string_view<_Elem, _Traits> _Right) noexcept {
-        return _Left.compare(_Right) == 0;
-    }
-
-    template _MJSTR_API bool operator==(const byte_string_view, const byte_string_view) noexcept;
-    template _MJSTR_API bool operator==(const utf8_string_view, const utf8_string_view) noexcept;
-    template _MJSTR_API bool operator==(const unicode_string_view, const unicode_string_view) noexcept;
-
-    template <class _Elem, class _Traits>
-    bool operator==(const string_view<_Elem, _Traits> _Left, const _Elem* const _Right) noexcept {
-        return _Left.compare(_Right) == 0;
-    }
-
-    template _MJSTR_API bool operator==(const byte_string_view, const byte_t* const) noexcept;
-    template _MJSTR_API bool operator==(const utf8_string_view, const char* const) noexcept;
-    template _MJSTR_API bool operator==(const unicode_string_view, const wchar_t* const) noexcept;
-
-    template <class _Elem, class _Traits>
-    bool operator==(const _Elem* const _Left, const string_view<_Elem, _Traits> _Right) noexcept {
-        return _Right.compare(_Left) == 0;
-    }
-
-    template _MJSTR_API bool operator==(const byte_t* const, const byte_string_view) noexcept;
-    template _MJSTR_API bool operator==(const char* const, const utf8_string_view) noexcept;
-    template _MJSTR_API bool operator==(const wchar_t* const, const unicode_string_view) noexcept;
-
-    template <class _Elem, class _Traits>
-    bool operator!=(const string_view<_Elem, _Traits> _Left,
-        const string_view<_Elem, _Traits> _Right) noexcept {
-        return _Left.compare(_Right) != 0;
-    }
-
-    template _MJSTR_API bool operator!=(const byte_string_view, const byte_string_view) noexcept;
-    template _MJSTR_API bool operator!=(const utf8_string_view, const utf8_string_view) noexcept;
-    template _MJSTR_API bool operator!=(const unicode_string_view, const unicode_string_view) noexcept;
-
-    template <class _Elem, class _Traits>
-    bool operator!=(const string_view<_Elem, _Traits> _Left, const _Elem* const _Right) noexcept {
-        return _Left.compare(_Right) != 0;
-    }
-
-    template _MJSTR_API bool operator!=(const byte_string_view, const byte_t* const) noexcept;
-    template _MJSTR_API bool operator!=(const utf8_string_view, const char* const) noexcept;
-    template _MJSTR_API bool operator!=(const unicode_string_view, const wchar_t* const) noexcept;
-
-    template <class _Elem, class _Traits>
-    bool operator!=(const _Elem* const _Left, const string_view<_Elem, _Traits> _Right) noexcept {
-        return _Right.compare(_Left) != 0;
-    }
-
-    template _MJSTR_API bool operator!=(const byte_t* const, const byte_string_view) noexcept;
-    template _MJSTR_API bool operator!=(const char* const, const utf8_string_view) noexcept;
-    template _MJSTR_API bool operator!=(const wchar_t* const, const unicode_string_view) noexcept;
 } // namespace mjx
