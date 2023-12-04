@@ -27,6 +27,134 @@ namespace mjx {
         pointer _Ptr) noexcept : _Myptr(_Ptr) {}
 #endif // _DEBUG
 
+    template <class _Elem>
+    typename string_const_iterator<_Elem>::reference string_const_iterator<_Elem>::operator*() const noexcept {
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Myptr != nullptr && _Myptr != _Myend, "attempt to dereference invalid iterator");
+#endif // _DEBUG
+        return *_Myptr;
+    }
+
+    template <class _Elem>
+    typename string_const_iterator<_Elem>::pointer string_const_iterator<_Elem>::operator->() const noexcept {
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Myptr != nullptr && _Myptr != _Myend, "attempt to dereference invalid iterator");
+#endif // _DEBUG
+        return _Myptr;
+    }
+
+    template <class _Elem>
+    typename string_const_iterator<_Elem>::reference
+        string_const_iterator<_Elem>::operator[](const difference_type _Off) const noexcept {
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Myptr != nullptr, "attempt to use invalid iterator");
+        _INTERNAL_ASSERT(_Myend - _Myptr >= _Off, "attempt to access non-existent element");
+#endif // _DEBUG
+        return _Myptr[_Off];
+    }
+
+    template <class _Elem>
+    string_const_iterator<_Elem>& string_const_iterator<_Elem>::operator++() noexcept {
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Myptr != nullptr, "attempt to use invalid iterator");
+        _INTERNAL_ASSERT(_Myend - _Myptr > 0, "attempt to advance iterator that points to the end");
+#endif // _DEBUG
+        ++_Myptr;
+        return *this;
+    }
+
+    template <class _Elem>
+    string_const_iterator<_Elem> string_const_iterator<_Elem>::operator++(int) noexcept {
+        const string_const_iterator _Temp = *this;
+        ++*this;
+        return _Temp;
+    }
+
+    template <class _Elem>
+    string_const_iterator<_Elem>& string_const_iterator<_Elem>::operator--() noexcept {
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Myptr != nullptr, "attempt to use invalid iterator");
+        _INTERNAL_ASSERT(_Myptr - _Mybegin > 0, "attempt to retreat iterator that points to the beginning");
+#endif // _DEBUG
+        --_Myptr;
+        return *this;
+    }
+
+    template <class _Elem>
+    string_const_iterator<_Elem> string_const_iterator<_Elem>::operator--(int) noexcept {
+        const string_const_iterator _Temp = *this;
+        --*this;
+        return _Temp;
+    }
+
+    template <class _Elem>
+    string_const_iterator<_Elem>&
+        string_const_iterator<_Elem>::operator+=(const difference_type _Off) noexcept {
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Myptr != nullptr, "attempt to use invalid iterator");
+        _INTERNAL_ASSERT(_Myend - _Myptr >= _Off, "attempt to advance iterator beyond the end");
+#endif // _DEBUG
+        _Myptr += _Off;
+        return *this;
+    }
+
+    template <class _Elem>
+    string_const_iterator<_Elem>&
+        string_const_iterator<_Elem>::operator-=(const difference_type _Off) noexcept {
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Myptr != nullptr, "attempt to use invalid iterator");
+        _INTERNAL_ASSERT(_Myptr - _Mybegin >= _Off, "attempt to retreat iterator beyond the beginning");
+#endif // _DEBUG
+        _Myptr -= _Off;
+        return *this;
+    }
+
+    template <class _Elem>
+    string_const_iterator<_Elem>
+        string_const_iterator<_Elem>::operator+(const difference_type _Off) const noexcept {
+        string_const_iterator _Temp = *this;
+        _Temp                      += _Off;
+        return _Temp;
+    }
+
+    template <class _Elem>
+    string_const_iterator<_Elem>
+        string_const_iterator<_Elem>::operator-(const difference_type _Off) const noexcept {
+        string_const_iterator _Temp = *this;
+        _Temp                      -= _Off;
+        return _Temp;
+    }
+
+    template <class _Elem>
+    bool string_const_iterator<_Elem>::operator==(const string_const_iterator& _Other) const noexcept {
+        return _Myptr == _Other._Myptr;
+    }
+
+    template <class _Elem>
+    bool string_const_iterator<_Elem>::operator!=(const string_const_iterator& _Other) const noexcept {
+        return _Myptr != _Other._Myptr;
+    }
+
+    template <class _Elem>
+    bool string_const_iterator<_Elem>::operator>(const string_const_iterator& _Other) const noexcept {
+        return _Myptr > _Other._Myptr;
+    }
+
+    template <class _Elem>
+    bool string_const_iterator<_Elem>::operator>=(const string_const_iterator& _Other) const noexcept {
+        return _Myptr >= _Other._Myptr;
+    }
+
+    template <class _Elem>
+    bool string_const_iterator<_Elem>::operator<(const string_const_iterator& _Other) const noexcept {
+        return _Myptr < _Other._Myptr;
+    }
+
+    template <class _Elem>
+    bool string_const_iterator<_Elem>::operator<=(const string_const_iterator& _Other) const noexcept {
+        return _Myptr <= _Other._Myptr;
+    }
+
     template _MJSTR_API class string_const_iterator<byte_t>;
     template _MJSTR_API class string_const_iterator<char>;
     template _MJSTR_API class string_const_iterator<wchar_t>;
@@ -437,8 +565,7 @@ namespace mjx {
     template <class _Elem, class _Traits>
     typename string<_Elem, _Traits>::iterator string<_Elem, _Traits>::begin() noexcept {
 #ifdef _DEBUG
-        pointer _Buf_ptr = _Mybuf._Get();
-        return iterator{_Buf_ptr, _Buf_ptr + _Mybuf._Size};
+        return iterator{_Mybuf._Get(), _Mybuf._Get() + _Mybuf._Size};
 #else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
         return iterator{_Mybuf._Get()};
 #endif // _DEBUG
@@ -447,8 +574,7 @@ namespace mjx {
     template <class _Elem, class _Traits>
     typename string<_Elem, _Traits>::const_iterator string<_Elem, _Traits>::begin() const noexcept {
 #ifdef _DEBUG
-        const_pointer _Buf_ptr = _Mybuf._Get();
-        return const_iterator{_Buf_ptr, _Buf_ptr + _Mybuf._Size};
+        return const_iterator{_Mybuf._Get(), _Mybuf._Get() + _Mybuf._Size};
 #else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
         return const_iterator{_Mybuf._Get()};
 #endif // _DEBUG
@@ -457,8 +583,7 @@ namespace mjx {
     template <class _Elem, class _Traits>
     typename string<_Elem, _Traits>::iterator string<_Elem, _Traits>::end() noexcept {
 #ifdef _DEBUG
-        pointer _Buf_ptr = _Mybuf._Get() + _Mybuf._Size; // both sides point to the end
-        return iterator{_Buf_ptr, _Buf_ptr};
+        return iterator{_Mybuf._Get() + _Mybuf._Size, _Mybuf._Get() + _Mybuf._Size};
 #else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
         return iterator{_Mybuf._Get() + _Mybuf._Size};
 #endif // _DEBUG
@@ -467,8 +592,7 @@ namespace mjx {
     template <class _Elem, class _Traits>
     typename string<_Elem, _Traits>::const_iterator string<_Elem, _Traits>::end() const noexcept {
 #ifdef _DEBUG
-        const_pointer _Buf_ptr = _Mybuf._Get(); // both sides point to the end
-        return const_iterator{_Buf_ptr, _Buf_ptr};
+        return const_iterator{_Mybuf._Get() + _Mybuf._Size, _Mybuf._Get() + _Mybuf._Size};
 #else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
         return const_iterator{_Mybuf._Get() + _Mybuf._Size};
 #endif // _DEBUG

@@ -13,7 +13,7 @@
 
 namespace mjx {
     template <class _Elem>
-    class _MJSTR_API string_const_iterator { // random access constant iterator for string<CharT>
+    class _MJSTR_API string_const_iterator { // random access constant iterator for string<CharT, Traits>
     public:
         using value_type      = _Elem;
         using difference_type = ptrdiff_t;
@@ -27,6 +27,57 @@ namespace mjx {
         explicit string_const_iterator(pointer _Ptr) noexcept;
 #endif // _DEBUG
 
+        // returns the first character of the current substring
+        reference operator*() const noexcept;
+
+        // returns the current substring
+        pointer operator->() const noexcept;
+
+        // returns the element at specified offset
+        reference operator[](const difference_type _Off) const noexcept;
+
+        // advances the iterator to the next element
+        string_const_iterator& operator++() noexcept;
+
+        // advances the iterator to the next element (performs post-incrementation)
+        string_const_iterator operator++(int) noexcept;
+
+        // retreats the iterator to the previous element
+        string_const_iterator& operator--() noexcept;
+
+        // retreats the iterator to the previous element (performs post-decrementation)
+        string_const_iterator operator--(int) noexcept;
+
+        // advances the iterator by _Off elements
+        string_const_iterator& operator+=(const difference_type _Off) noexcept;
+
+        // retreats the iterator by _Off elements
+        string_const_iterator& operator-=(const difference_type _Off) noexcept;
+
+        // returns a new iterator that is _Off elements ahead the current one
+        string_const_iterator operator+(const difference_type _Off) const noexcept;
+
+        // returns a new iterator that is _Off elements behind the current one
+        string_const_iterator operator-(const difference_type _Off) const noexcept;
+
+        // checks if two iterators are equal
+        bool operator==(const string_const_iterator& _Other) const noexcept;
+
+        // checks if two iterators are not equal
+        bool operator!=(const string_const_iterator& _Other) const noexcept;
+
+        // checks if the current iterator is greater than other one
+        bool operator>(const string_const_iterator& _Other) const noexcept;
+
+        // checks if the current iterator is greater than or equal to other one
+        bool operator>=(const string_const_iterator& _Other) const noexcept;
+
+        // checks if the current iterator is less than other one
+        bool operator<(const string_const_iterator& _Other) const noexcept;
+
+        // checks if the current iterator is less than or equal to other one
+        bool operator<=(const string_const_iterator& _Other) const noexcept;
+
     private:
         pointer _Myptr;
 #ifdef _DEBUG
@@ -38,10 +89,10 @@ namespace mjx {
     using byte_string_const_iterator    = string_const_iterator<byte_t>;
     using utf8_string_const_iterator    = string_const_iterator<char>;
     using unicode_string_const_iterator = string_const_iterator<wchar_t>;
-
+    
     template <class _Elem>
     class _MJSTR_API string_iterator
-        : public string_const_iterator<_Elem> { // random access iterator for string<CharT>
+        : public string_const_iterator<_Elem> { // random access iterator for string<CharT, Traits>
     private:
         using _Mybase = string_const_iterator<_Elem>;
 

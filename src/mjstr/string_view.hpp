@@ -12,7 +12,7 @@
 
 namespace mjx {
     template <class _Elem>
-    class _MJSTR_API string_view_iterator { // random access iterator for string_view<CharT>
+    class _MJSTR_API string_view_iterator { // random access iterator for string_view<CharT, Traits>
     public:
         using value_type      = _Elem;
         using difference_type = ptrdiff_t;
@@ -26,7 +26,7 @@ namespace mjx {
         explicit string_view_iterator(pointer _Ptr) noexcept;
 #endif // _DEBUG
 
-        // returns the first character of current substring
+        // returns the first character of the current substring
         reference operator*() const noexcept;
 
         // returns the current substring
