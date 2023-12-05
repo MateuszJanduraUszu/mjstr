@@ -108,6 +108,39 @@ namespace mjx {
 #else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
         explicit string_iterator(pointer _Ptr) noexcept;
 #endif // _DEBUG
+
+        // returns the first character of the current substring
+        reference operator*() const noexcept;
+
+        // returns the current substring
+        pointer operator->() const noexcept;
+
+        // returns the element at specified offset
+        reference operator[](const difference_type _Off) const noexcept;
+
+        // advances the iterator to the next element
+        string_iterator& operator++() noexcept;
+
+        // advances the iterator to the next element (performs post-incrementation)
+        string_iterator operator++(int) noexcept;
+
+        // retreats the iterator to the previous element
+        string_iterator& operator--() noexcept;
+
+        // retreats the iterator to the previous element (performs post-decrementation)
+        string_iterator operator--(int) noexcept;
+
+        // advances the iterator by _Off elements
+        string_iterator& operator+=(const difference_type _Off) noexcept;
+
+        // retreats the iterator by _Off elements
+        string_iterator& operator-=(const difference_type _Off) noexcept;
+
+        // returns a new iterator that is _Off elements ahead the current one
+        string_iterator operator+(const difference_type _Off) const noexcept;
+
+        // returns a new iterator that is _Off elements behind the current one
+        string_iterator operator-(const difference_type _Off) const noexcept;
     };
 
     using byte_string_iterator    = string_iterator<byte_t>;
@@ -142,7 +175,7 @@ namespace mjx {
         string(const size_type _Count, const value_type _Ch) noexcept;
         string(const_pointer _Ptr, const size_type _Count) noexcept;
         string(const_pointer _Ptr) noexcept;
-        string(const string_view<_Elem> _Str) noexcept;
+        string(const string_view<_Elem, _Traits> _Str) noexcept;
 
         string(nullptr_t)            = delete;
         string& operator=(nullptr_t) = delete;

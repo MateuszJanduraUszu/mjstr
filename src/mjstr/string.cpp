@@ -170,6 +170,74 @@ namespace mjx {
         pointer _Ptr) noexcept : _Mybase(_Ptr) {}
 #endif // _DEBUG
 
+    template <class _Elem>
+    typename string_iterator<_Elem>::reference string_iterator<_Elem>::operator*() const noexcept {
+        return const_cast<reference>(_Mybase::operator*());
+    }
+
+    template <class _Elem>
+    typename string_iterator<_Elem>::pointer string_iterator<_Elem>::operator->() const noexcept {
+        return const_cast<pointer>(_Mybase::operator->());
+    }
+
+    template <class _Elem>
+    typename string_iterator<_Elem>::reference
+        string_iterator<_Elem>::operator[](const difference_type _Off) const noexcept {
+        return const_cast<reference>(_Mybase::operator[](_Off));
+    }
+
+    template <class _Elem>
+    string_iterator<_Elem>& string_iterator<_Elem>::operator++() noexcept {
+        _Mybase::operator++();
+        return *this;
+    }
+
+    template <class _Elem>
+    string_iterator<_Elem> string_iterator<_Elem>::operator++(int) noexcept {
+        string_iterator _Temp = *this;
+        _Mybase::operator++();
+        return _Temp;
+    }
+
+    template <class _Elem>
+    string_iterator<_Elem>& string_iterator<_Elem>::operator--() noexcept {
+        _Mybase::operator--();
+        return *this;
+    }
+
+    template <class _Elem>
+    string_iterator<_Elem> string_iterator<_Elem>::operator--(int) noexcept {
+        string_iterator _Temp = *this;
+        _Mybase::operator--();
+        return _Temp;
+    }
+
+    template <class _Elem>
+    string_iterator<_Elem>& string_iterator<_Elem>::operator+=(const difference_type _Off) noexcept {
+        _Mybase::operator+=(_Off);
+        return *this;
+    }
+
+    template <class _Elem>
+    string_iterator<_Elem>& string_iterator<_Elem>::operator-=(const difference_type _Off) noexcept {
+        _Mybase::operator-=(_Off);
+        return *this;
+    }
+
+    template <class _Elem>
+    string_iterator<_Elem> string_iterator<_Elem>::operator+(const difference_type _Off) const noexcept {
+        string_iterator _Temp = *this;
+        _Temp                += _Off;
+        return _Temp;
+    }
+
+    template <class _Elem>
+    string_iterator<_Elem> string_iterator<_Elem>::operator-(const difference_type _Off) const noexcept {
+        string_iterator _Temp = *this;
+        _Temp                -= _Off;
+        return _Temp;
+    }
+
     template _MJSTR_API class string_iterator<byte_t>;
     template _MJSTR_API class string_iterator<char>;
     template _MJSTR_API class string_iterator<wchar_t>;
@@ -221,7 +289,7 @@ namespace mjx {
     }
 
     template <class _Elem, class _Traits>
-    string<_Elem, _Traits>::string(const string_view<_Elem> _Str) noexcept : _Mybuf() {
+    string<_Elem, _Traits>::string(const string_view<_Elem, _Traits> _Str) noexcept : _Mybuf() {
 #ifdef _DEBUG
         _INTERNAL_ASSERT(
             _Construct_from_ptr(_Str.data(), _Str.size()), "failed to construct the string");
