@@ -277,6 +277,14 @@ namespace mjx {
         bool erase(const const_iterator _Where) noexcept;
         bool erase(const const_iterator _First, const const_iterator _Last) noexcept;
 
+        // inserts characters
+        bool insert(const size_type _Off, const size_type _Count, const value_type _Ch) noexcept;
+        bool insert(const size_type _Off, const_pointer _Ptr) noexcept;
+        bool insert(const size_type _Off, const_pointer _Ptr, const size_type _Count) noexcept;
+        bool insert(const size_type _Off, const string& _Str) noexcept;
+        bool insert(const const_iterator _Where, const value_type _Ch) noexcept;
+        bool insert(const size_type _Off, const string_view<_Elem, _Traits> _Str) noexcept;
+
         // appends a character to the end
         bool push_back(const value_type _Ch) noexcept;
 
@@ -356,12 +364,18 @@ namespace mjx {
         bool _Construct_from_chars(const size_type _Count, const value_type _Ch) noexcept;
 
         // resizes buffer capacity and stores new data at the beginning
-        bool _Reallocate_assign(const value_type _Ch, const size_type _Count) noexcept;
+        bool _Reallocate_assign(const size_type _Count, const value_type _Ch) noexcept;
         bool _Reallocate_assign(const_pointer _Ptr, const size_type _Count) noexcept;
 
         // increases buffer capacity and stores new data at the end
-        bool _Reallocate_insert_back(const value_type _Ch, const size_type _Count) noexcept;
+        bool _Reallocate_insert_back(const size_type _Count, const value_type _Ch) noexcept;
         bool _Reallocate_insert_back(const_pointer _Ptr, const size_type _Count) noexcept;
+
+        // increases buffer capacity and stores new data at the specified position
+        bool _Reallocate_insert_at(
+            const size_type _Off, const size_type _Count, const value_type _Ch) noexcept;
+        bool _Reallocate_insert_at(
+            const size_type _Off, const_pointer _Ptr, const size_type _Count) noexcept;
 
         static constexpr size_type _Alloc_align = (2 * sizeof(void*)) / sizeof(value_type);
         static constexpr size_type _Alloc_mask  = _Alloc_align - 1;

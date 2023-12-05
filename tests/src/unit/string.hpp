@@ -106,6 +106,30 @@ namespace mjx {
             ASSERT_TRUE(_Str.erase(_First, _First + 2));
             EXPECT_EQ(_Str, "This");
         }
+
+        TEST(string, insert) {
+            utf8_string _Str = "xmplr";
+
+            // Test 1: Insert "E" at the beginning.
+            ASSERT_TRUE(_Str.insert(0, 1, 'E'));
+            EXPECT_EQ(_Str, "Exmplr");
+
+            // Test 2: Insert "e" at the second place.
+            ASSERT_TRUE(_Str.insert(2, "e"));
+            EXPECT_EQ(_Str, "Exemplr");
+
+            // Test 3: Insert "a" at the sixth place.
+            ASSERT_TRUE(_Str.insert(6, utf8_string{"a"}));
+            EXPECT_EQ(_Str, "Exemplar");
+            
+            // Test 4: Insert " is an example." at the end.
+            ASSERT_TRUE(_Str.insert(8, " is an example."));
+            EXPECT_EQ(_Str, "Exemplar is an example.");
+        
+            // Test 5: Insert ":" after "Exemplar".
+            ASSERT_TRUE(_Str.insert(_Str.begin() + 14, ':'));
+            EXPECT_EQ(_Str, "Exemplar is an: example.");
+        }
     } // namespace test
 } // namespace mjx
 
