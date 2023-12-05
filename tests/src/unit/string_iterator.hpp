@@ -57,6 +57,26 @@ namespace mjx {
             _Iter -= 2;
             EXPECT_EQ(_Iter[0], '8');
         }
+
+        TEST(string_iterator, mutable_iteration) {
+            utf8_string _Str = "utf8_string";
+            for (char& _Ch : _Str) {
+                _Ch = ::toupper(_Ch);
+            }
+
+            EXPECT_EQ(_Str, "UTF8_STRING");
+        }
+
+        TEST(string_iterator, mutable_element_access) {
+            utf8_string _Str           = "utf8_string";
+            utf8_string_iterator _Iter = _Str.begin();
+            _Iter[0]                   = 'x';
+            _Iter[4]                   = 'y';
+            _Iter[10]                  = 'z';
+            EXPECT_EQ(_Iter[0], 'x');
+            EXPECT_EQ(_Iter[4], 'y');
+            EXPECT_EQ(_Iter[10], 'z');
+        }
     } // namespace test
 } // namespace mjx
 
