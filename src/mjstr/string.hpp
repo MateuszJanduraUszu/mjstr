@@ -7,6 +7,7 @@
 #ifndef _MJSTR_STRING_HPP_
 #define _MJSTR_STRING_HPP_
 #include <cstddef>
+#include <iterator>
 #include <mjstr/api.hpp>
 #include <mjstr/char_traits.hpp>
 #include <mjstr/string_view.hpp>
@@ -15,10 +16,11 @@ namespace mjx {
     template <class _Elem>
     class _MJSTR_API string_const_iterator { // random access constant iterator for string<CharT, Traits>
     public:
-        using value_type      = _Elem;
-        using difference_type = ptrdiff_t;
-        using pointer         = const _Elem*;
-        using reference       = const _Elem&;
+        using value_type        = _Elem;
+        using difference_type   = ptrdiff_t;
+        using pointer           = const _Elem*;
+        using reference         = const _Elem&;
+        using iterator_category = ::std::random_access_iterator_tag;
 
         string_const_iterator() noexcept;
 #ifdef _DEBUG
@@ -79,6 +81,9 @@ namespace mjx {
         bool operator<=(const string_const_iterator& _Other) const noexcept;
 
     private:
+        template <class, class>
+        friend class string;
+
         pointer _Myptr;
 #ifdef _DEBUG
         pointer _Mybegin;
@@ -97,10 +102,11 @@ namespace mjx {
         using _Mybase = string_const_iterator<_Elem>;
 
     public:
-        using value_type      = _Elem;
-        using difference_type = ptrdiff_t;
-        using pointer         = _Elem*;
-        using reference       = _Elem&;
+        using value_type        = _Elem;
+        using difference_type   = ptrdiff_t;
+        using pointer           = _Elem*;
+        using reference         = _Elem&;
+        using iterator_category = ::std::random_access_iterator_tag;
     
         string_iterator() noexcept;
 #ifdef _DEBUG
@@ -265,6 +271,11 @@ namespace mjx {
 
         // reduces memory usage by freeing unused memory
         bool shrink_to_fit() noexcept;
+
+        // removes characters
+        bool erase(const size_type _Off = 0, size_type _Count = npos) noexcept;
+        bool erase(const const_iterator _Where) noexcept;
+        bool erase(const const_iterator _First, const const_iterator _Last) noexcept;
 
         // appends a character to the end
         bool push_back(const value_type _Ch) noexcept;

@@ -7,6 +7,7 @@
 #ifndef _MJSTR_STRING_VIEW_HPP_
 #define _MJSTR_STRING_VIEW_HPP_
 #include <cstddef>
+#include <iterator>
 #include <mjstr/api.hpp>
 #include <mjstr/char_traits.hpp>
 
@@ -14,10 +15,11 @@ namespace mjx {
     template <class _Elem>
     class _MJSTR_API string_view_iterator { // random access iterator for string_view<CharT, Traits>
     public:
-        using value_type      = _Elem;
-        using difference_type = ptrdiff_t;
-        using pointer         = const _Elem*;
-        using reference       = const _Elem&;
+        using value_type        = _Elem;
+        using difference_type   = ptrdiff_t;
+        using pointer           = const _Elem*;
+        using reference         = const _Elem&;
+        using iterator_category = ::std::random_access_iterator_tag;
 
         string_view_iterator() noexcept;
 #ifdef _DEBUG

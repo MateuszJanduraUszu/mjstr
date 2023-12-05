@@ -888,6 +888,35 @@ namespace mjx {
     }
 
     template <class _Elem, class _Traits>
+    bool string<_Elem, _Traits>::erase(const size_type _Off, size_type _Count) noexcept {
+        if (_Off >= _Mybuf._Size) {
+            return false;
+        }
+
+        _Count = mjstr_impl::_Min(_Count, _Mybuf._Size - _Off);
+        if (_Count > 0) { // remove some characters
+            pointer _Buf_ptr          = _Mybuf._Get();
+            pointer _Ptr_begin        = _Buf_ptr + _Off;
+            const size_type _New_size = _Mybuf._Size - _Count;
+            _Traits::move(_Ptr_begin, _Ptr_begin + _Count, _New_size - _Off + 1); // move null-terminator too
+            _Mybuf._Size = _New_size;
+        }
+
+        return true;
+    }
+
+    template <class _Elem, class _Traits>
+    bool string<_Elem, _Traits>::erase(const const_iterator _Where) noexcept {
+        return erase(static_cast<size_type>(_Where._Myptr - _Mybuf._Get()), 1);
+    }
+
+    template <class _Elem, class _Traits>
+    bool string<_Elem, _Traits>::erase(const const_iterator _First, const const_iterator _Last) noexcept {
+        return erase(static_cast<size_type>(_First._Myptr - _Mybuf._Get()),
+            static_cast<size_type>(_Last._Myptr - _First._Myptr));
+    }
+
+    template <class _Elem, class _Traits>
     bool string<_Elem, _Traits>::push_back(const value_type _Ch) noexcept {
         if (_Mybuf._Size + 1 <= _Mybuf._Capacity) { // found enough space, don't reallocate memory
             pointer _Buf_ptr         = _Mybuf._Get();

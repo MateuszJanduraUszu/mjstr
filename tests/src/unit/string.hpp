@@ -85,6 +85,27 @@ namespace mjx {
             EXPECT_EQ(_Str.size(), 10);
             EXPECT_EQ(_Str, utf8_string(10, 'x'));
         }
+
+        TEST(string, erase) {
+            utf8_string _Str = "This Is An Example";
+
+            // Test 1: Erase " An".
+            ASSERT_TRUE(_Str.erase(7, 3));
+            EXPECT_EQ(_Str, "This Is Example");
+
+            // Test 2: Erase first " ".
+            ASSERT_TRUE(_Str.erase(_Str.begin() + _Str.find(' ')));
+            EXPECT_EQ(_Str, "ThisIs Example");
+
+            // Test 3: Trim from " " to the end of the string.
+            ASSERT_TRUE(_Str.erase(_Str.find(' ')));
+            EXPECT_EQ(_Str, "ThisIs");
+
+            // Test 4: Erase "Is".
+            const utf8_string_const_iterator _First = _Str.begin() + _Str.find('s');
+            ASSERT_TRUE(_Str.erase(_First, _First + 2));
+            EXPECT_EQ(_Str, "This");
+        }
     } // namespace test
 } // namespace mjx
 
