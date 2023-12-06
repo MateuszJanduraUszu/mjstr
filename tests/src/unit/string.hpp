@@ -130,6 +130,26 @@ namespace mjx {
             ASSERT_TRUE(_Str.insert(_Str.begin() + 14, ':'));
             EXPECT_EQ(_Str, "Exemplar is an: example.");
         }
+
+        TEST(string, replace) {
+            utf8_string _Str = "Hello World!";
+
+            // Test 1: Replace "Hello" with "Hi".
+            ASSERT_TRUE(_Str.replace(0, 5, "Hi"));
+            EXPECT_EQ(_Str, "Hi World!");
+
+            { // Test 2: Replace "World" with "John".
+                const auto& _Iter = _Str.begin() + _Str.find('W');
+                ASSERT_TRUE(_Str.replace(_Iter, _Iter + 5, "John"));
+                EXPECT_EQ(_Str, "Hi John!");
+            }
+
+            { // Test 3: Replace "!" with "...".
+                const auto& _Iter = _Str.begin() + _Str.size() - 1;
+                ASSERT_TRUE(_Str.replace(_Iter, _Iter + 1, 3, '.'));
+                EXPECT_EQ(_Str, "Hi John...");
+            }
+        }
     } // namespace test
 } // namespace mjx
 

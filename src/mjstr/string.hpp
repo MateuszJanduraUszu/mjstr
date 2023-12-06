@@ -272,25 +272,6 @@ namespace mjx {
         // reduces memory usage by freeing unused memory
         bool shrink_to_fit() noexcept;
 
-        // removes characters
-        bool erase(const size_type _Off = 0, size_type _Count = npos) noexcept;
-        bool erase(const const_iterator _Where) noexcept;
-        bool erase(const const_iterator _First, const const_iterator _Last) noexcept;
-
-        // inserts characters
-        bool insert(const size_type _Off, const size_type _Count, const value_type _Ch) noexcept;
-        bool insert(const size_type _Off, const_pointer _Ptr) noexcept;
-        bool insert(const size_type _Off, const_pointer _Ptr, const size_type _Count) noexcept;
-        bool insert(const size_type _Off, const string& _Str) noexcept;
-        bool insert(const const_iterator _Where, const value_type _Ch) noexcept;
-        bool insert(const size_type _Off, const string_view<_Elem, _Traits> _Str) noexcept;
-
-        // appends a character to the end
-        bool push_back(const value_type _Ch) noexcept;
-
-        // remvoes the last character
-        bool pop_back() noexcept;
-
         // assigns characters to the string
         bool assign(const size_type _Count, const value_type _Ch) noexcept;
         bool assign(const string& _Str) noexcept;
@@ -305,6 +286,45 @@ namespace mjx {
         bool append(const_pointer _Ptr, const size_type _Count) noexcept;
         bool append(const_pointer _Ptr) noexcept;
         bool append(const string_view<_Elem, _Traits> _Str) noexcept;
+
+        // appends a character to the end
+        bool push_back(const value_type _Ch) noexcept;
+
+        // remvoes the last character
+        bool pop_back() noexcept;
+
+        // removes characters
+        bool erase(const size_type _Off = 0, size_type _Count = npos) noexcept;
+        bool erase(const const_iterator _Where) noexcept;
+        bool erase(const const_iterator _First, const const_iterator _Last) noexcept;
+
+        // inserts characters
+        bool insert(const size_type _Off, const size_type _Count, const value_type _Ch) noexcept;
+        bool insert(const size_type _Off, const_pointer _Ptr) noexcept;
+        bool insert(const size_type _Off, const_pointer _Ptr, const size_type _Count) noexcept;
+        bool insert(const size_type _Off, const string& _Str) noexcept;
+        bool insert(const const_iterator _Where, const value_type _Ch) noexcept;
+        bool insert(const size_type _Off, const string_view<_Elem, _Traits> _Str) noexcept;
+
+        // replaces specified portion of the string
+        bool replace(const size_type _Off, size_type _Count, const string& _Str) noexcept;
+        bool replace(
+            const const_iterator _First, const const_iterator _Last, const string& _Str) noexcept;
+        bool replace(const size_type _Off,
+            size_type _Count, const_pointer _Ptr, const size_type _Ptr_count) noexcept;
+        bool replace(const const_iterator _First,
+            const const_iterator _Last, const_pointer _Ptr, const size_type _Count) noexcept;
+        bool replace(const size_type _Off, size_type _Count, const_pointer _Ptr) noexcept;
+        bool replace(
+            const const_iterator _First, const const_iterator _Last, const_pointer _Ptr) noexcept;
+        bool replace(const size_type _Off,
+            size_type _Count, const size_type _Ch_count, const value_type _Ch) noexcept;
+        bool replace(const const_iterator _First,
+            const const_iterator _Last, const size_type _Count, const value_type _Ch) noexcept;
+        bool replace(const size_type _Off,
+            size_type _Count, const string_view<_Elem, _Traits> _Str) noexcept;
+        bool replace(const const_iterator _First,
+            const const_iterator _Last, const string_view<_Elem, _Traits> _Str) noexcept;
 
         // finds the first occurrence of the given substring
         size_type find(const string& _Str, const size_type _Off = 0) const noexcept;
@@ -348,7 +368,7 @@ namespace mjx {
         string substr(const size_type _Off = 0, size_type _Count = npos) const noexcept;
 
     private:
-        // deallocates the string
+        // destroys the string
         void _Tidy() noexcept;
 
         // allocates memory for the string capacity
@@ -377,6 +397,12 @@ namespace mjx {
         bool _Reallocate_insert_at(
             const size_type _Off, const_pointer _Ptr, const size_type _Count) noexcept;
 
+        // increases buffer capacity and replaces the data at the specified position
+        bool _Reallocate_replace(const size_type _Off,
+            const size_type _Count, const size_type _Ch_count, const value_type _Ch) noexcept;
+        bool _Reallocate_replace(const size_type _Off,
+            const size_type _Count, const_pointer _Ptr, const size_type _Ptr_count) noexcept;
+
         static constexpr size_type _Alloc_align = (2 * sizeof(void*)) / sizeof(value_type);
         static constexpr size_type _Alloc_mask  = _Alloc_align - 1;
 
@@ -399,6 +425,9 @@ namespace mjx {
 
             // swaps small buffer with large one
             void _Swap_small_with_large(_Internal_buffer& _Other) noexcept;
+
+            // deallocates large buffer
+            void _Deallocate_if_large() noexcept;
 
             size_type _Capacity; // number of characters that can be stored without reallocating memory
             size_type _Size; // number of characters currently stored in the string
