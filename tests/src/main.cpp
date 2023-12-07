@@ -3,6 +3,7 @@
 // Copyright (c) Mateusz Jandura. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+#include <unit/conversion.hpp>
 #include <unit/string.hpp>
 #include <unit/string_iterator.hpp>
 #include <unit/string_view.hpp>
