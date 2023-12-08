@@ -174,14 +174,14 @@ namespace mjx {
         static constexpr size_type npos = static_cast<size_type>(-1);
 
         string() noexcept;
-        string(const string& _Other) noexcept;
+        string(const string& _Other);
         string(string&& _Other) noexcept;
         ~string() noexcept;
 
-        string(const size_type _Count, const value_type _Ch) noexcept;
-        string(const_pointer _Ptr, const size_type _Count) noexcept;
-        string(const_pointer _Ptr) noexcept;
-        string(const string_view<_Elem, _Traits> _Str) noexcept;
+        string(const size_type _Count, const value_type _Ch);
+        string(const_pointer _Ptr, const size_type _Count);
+        string(const_pointer _Ptr);
+        string(const string_view<_Elem, _Traits> _Str);
 
         string(nullptr_t)            = delete;
         string& operator=(nullptr_t) = delete;
@@ -190,17 +190,17 @@ namespace mjx {
         operator string_view<_Elem, _Traits>() const noexcept;
 
         // assigns characters to the string
-        string& operator=(const string& _Str) noexcept;
+        string& operator=(const string& _Str);
         string& operator=(string&& _Str) noexcept;
-        string& operator=(const_pointer _Ptr) noexcept;
-        string& operator=(const value_type _Ch) noexcept;
-        string& operator=(const string_view<_Elem, _Traits> _Str) noexcept;
+        string& operator=(const_pointer _Ptr);
+        string& operator=(const value_type _Ch);
+        string& operator=(const string_view<_Elem, _Traits> _Str);
 
         // appends characters to the end
-        string& operator+=(const string& _Str) noexcept;
-        string& operator+=(const_pointer _Ptr) noexcept;
-        string& operator+=(const value_type _Ch) noexcept;
-        string& operator+=(const string_view<_Elem, _Traits> _Str) noexcept;
+        string& operator+=(const string& _Str);
+        string& operator+=(const_pointer _Ptr);
+        string& operator+=(const value_type _Ch);
+        string& operator+=(const string_view<_Elem, _Traits> _Str);
 
         // accesses the specified character
         reference operator[](const size_type _Idx) noexcept;
@@ -249,10 +249,10 @@ namespace mjx {
         string_view<_Elem, _Traits> view() const noexcept;
 
         // reserves storage
-        bool reserve(size_type _New_capacity) noexcept;
+        void reserve(size_type _New_capacity);
 
         // copies characters
-        size_type copy(pointer _Dest, size_type _Count, const size_type _Off = 0) const noexcept;
+        size_type copy(pointer _Dest, size_type _Count, const size_type _Off = 0) const;
 
         // swaps the contents
         void swap(string& _Other) noexcept;
@@ -261,73 +261,70 @@ namespace mjx {
         void clear() noexcept;
 
         // changes the number of characters stored
-        bool resize(const size_type _New_size, const value_type _Ch = value_type{}) noexcept;
+        void resize(const size_type _New_size, const value_type _Ch = value_type{});
 
         // increases the number of characters stored
-        bool expand(const size_type _Count, const value_type _Ch = value_type{}) noexcept;
+        void expand(const size_type _Count, const value_type _Ch = value_type{});
 
         // decreases the number of characters stored
-        bool shrink(const size_type _Count) noexcept;
+        void shrink(const size_type _Count);
 
         // reduces memory usage by freeing unused memory
-        bool shrink_to_fit() noexcept;
+        void shrink_to_fit();
 
         // assigns characters to the string
-        bool assign(const size_type _Count, const value_type _Ch) noexcept;
-        bool assign(const string& _Str) noexcept;
-        bool assign(string&& _Str) noexcept;
-        bool assign(const_pointer _Ptr, const size_type _Count) noexcept;
-        bool assign(const_pointer _Ptr) noexcept;
-        bool assign(const string_view<_Elem, _Traits> _Str) noexcept;
+        string& assign(const size_type _Count, const value_type _Ch);
+        string& assign(const string& _Str);
+        string& assign(string&& _Str) noexcept;
+        string& assign(const_pointer _Ptr, const size_type _Count);
+        string& assign(const_pointer _Ptr);
+        string& assign(const string_view<_Elem, _Traits> _Str);
 
         // appends characters to the end
-        bool append(const size_type _Count, const value_type _Ch) noexcept;
-        bool append(const string& _Str) noexcept;
-        bool append(const_pointer _Ptr, const size_type _Count) noexcept;
-        bool append(const_pointer _Ptr) noexcept;
-        bool append(const string_view<_Elem, _Traits> _Str) noexcept;
+        string& append(const size_type _Count, const value_type _Ch);
+        string& append(const string& _Str);
+        string& append(const_pointer _Ptr, const size_type _Count);
+        string& append(const_pointer _Ptr);
+        string& append(const string_view<_Elem, _Traits> _Str);
 
         // appends a character to the end
-        bool push_back(const value_type _Ch) noexcept;
+        void push_back(const value_type _Ch);
 
         // remvoes the last character
-        bool pop_back() noexcept;
+        void pop_back() noexcept;
 
         // removes characters
-        bool erase(const size_type _Off = 0, size_type _Count = npos) noexcept;
-        bool erase(const const_iterator _Where) noexcept;
-        bool erase(const const_iterator _First, const const_iterator _Last) noexcept;
+        string& erase(const size_type _Off = 0, size_type _Count = npos);
+        iterator erase(const const_iterator _Where);
+        iterator erase(const const_iterator _First, const const_iterator _Last);
 
         // inserts characters
-        bool insert(const size_type _Off, const size_type _Count, const value_type _Ch) noexcept;
-        bool insert(const size_type _Off, const_pointer _Ptr) noexcept;
-        bool insert(const size_type _Off, const_pointer _Ptr, const size_type _Count) noexcept;
-        bool insert(const size_type _Off, const string& _Str) noexcept;
-        bool insert(const const_iterator _Where, const value_type _Ch) noexcept;
-        bool insert(const size_type _Off, const string_view<_Elem, _Traits> _Str) noexcept;
+        string& insert(const size_type _Off, const size_type _Count, const value_type _Ch);
+        string& insert(const size_type _Off, const_pointer _Ptr);
+        string& insert(const size_type _Off, const_pointer _Ptr, const size_type _Count);
+        string& insert(const size_type _Off, const string& _Str);
+        iterator insert(const const_iterator _Where, const value_type _Ch);
+        string& insert(const size_type _Off, const string_view<_Elem, _Traits> _Str);
 
         // replaces specified portion of the string
-        bool replace(const size_type _Off, size_type _Count, const string& _Str) noexcept;
-        bool replace(
-            const const_iterator _First, const const_iterator _Last, const string& _Str) noexcept;
-        bool replace(const size_type _Off,
-            size_type _Count, const_pointer _Ptr, const size_type _Ptr_count) noexcept;
-        bool replace(const const_iterator _First,
-            const const_iterator _Last, const_pointer _Ptr, const size_type _Count) noexcept;
-        bool replace(const size_type _Off, size_type _Count, const_pointer _Ptr) noexcept;
-        bool replace(
-            const const_iterator _First, const const_iterator _Last, const_pointer _Ptr) noexcept;
-        bool replace(const size_type _Off,
-            size_type _Count, const size_type _Ch_count, const value_type _Ch) noexcept;
-        bool replace(const const_iterator _First,
-            const const_iterator _Last, const size_type _Count, const value_type _Ch) noexcept;
-        bool replace(const size_type _Off,
-            size_type _Count, const string_view<_Elem, _Traits> _Str) noexcept;
-        bool replace(const const_iterator _First,
-            const const_iterator _Last, const string_view<_Elem, _Traits> _Str) noexcept;
+        string& replace(const size_type _Off, size_type _Count, const string& _Str);
+        string& replace(const const_iterator _First, const const_iterator _Last, const string& _Str);
+        string& replace(
+            const size_type _Off, size_type _Count, const_pointer _Ptr, const size_type _Ptr_count);
+        string& replace(const const_iterator _First,
+            const const_iterator _Last, const_pointer _Ptr, const size_type _Count);
+        string& replace(const size_type _Off, size_type _Count, const_pointer _Ptr);
+        string& replace(const const_iterator _First, const const_iterator _Last, const_pointer _Ptr);
+        string& replace(
+            const size_type _Off, size_type _Count, const size_type _Ch_count, const value_type _Ch);
+        string& replace(const const_iterator _First,
+            const const_iterator _Last, const size_type _Count, const value_type _Ch);
+        string& replace(const size_type _Off, size_type _Count, const string_view<_Elem, _Traits> _Str);
+        string& replace(
+            const const_iterator _First, const const_iterator _Last, const string_view<_Elem, _Traits> _Str);
 
         // finds the first occurrence of the given substring
-        size_type find(const string& _Str, const size_type _Off = 0) const noexcept;
+        size_type find(const string& _Str, const size_type _Off = 0) const;
         size_type find(
             const_pointer _Ptr, const size_type _Off, const size_type _Count) const noexcept;
         size_type find(const value_type _Ch, const size_type _Off = 0) const noexcept;
@@ -335,7 +332,7 @@ namespace mjx {
             const string_view<_Elem, _Traits> _Str, const size_type _Off = 0) const noexcept;
 
         // finds the last occurrence of the given substring
-        size_type rfind(const string& _Str, const size_type _Off = npos) const noexcept;
+        size_type rfind(const string& _Str, const size_type _Off = npos) const;
         size_type rfind(
             const_pointer _Ptr, const size_type _Off, const size_type _Count) const noexcept;
         size_type rfind(const_pointer _Ptr, const size_type _Off = npos) const noexcept;
@@ -344,7 +341,7 @@ namespace mjx {
             const string_view<_Elem, _Traits> _Str, const size_type _Off = npos) const noexcept;
 
         // compares two strings
-        int compare(const string& _Str) const noexcept;
+        int compare(const string& _Str) const;
         int compare(const_pointer _Ptr, const size_type _Count) const noexcept;
         int compare(const_pointer _Ptr) const noexcept;
         int compare(const string_view<_Elem, _Traits> _Str) const noexcept;
@@ -365,43 +362,47 @@ namespace mjx {
         bool contains(const_pointer _Ptr) const noexcept;
 
         // returns a substring
-        string substr(const size_type _Off = 0, size_type _Count = npos) const noexcept;
+        string substr(const size_type _Off = 0, size_type _Count = npos) const;
 
     private:
+        // allocates memory for the string capacity
+        static pointer _Allocate_space_for_capacity(size_type& _Count);
+
         // destroys the string
         void _Tidy() noexcept;
 
-        // allocates memory for the string capacity
-        static pointer _Allocate_space_for_capacity(size_type& _Count) noexcept;
+        // throws an exception if the specified offset is out of range
+        void _Check_offset(const size_type _Off) const;
+
+        // throws an exception if the specified offset is out of range (special case)
+        void _Check_offset_for_insertion(const size_type _Off) const;
 
         // steals the contents of another string
         void _Take_contents(string& _Other) noexcept;
 
         // constructs the string from a pointer
-        bool _Construct_from_ptr(const_pointer _Ptr, const size_type _Count) noexcept;
+        void _Construct_from_ptr(const_pointer _Ptr, const size_type _Count);
 
         // constructs the string from a character sequence
-        bool _Construct_from_chars(const size_type _Count, const value_type _Ch) noexcept;
+        void _Construct_from_chars(const size_type _Count, const value_type _Ch);
 
         // resizes buffer capacity and stores new data at the beginning
-        bool _Reallocate_assign(const size_type _Count, const value_type _Ch) noexcept;
-        bool _Reallocate_assign(const_pointer _Ptr, const size_type _Count) noexcept;
+        void _Reallocate_assign(const size_type _Count, const value_type _Ch);
+        void _Reallocate_assign(const_pointer _Ptr, const size_type _Count);
 
         // increases buffer capacity and stores new data at the end
-        bool _Reallocate_insert_back(const size_type _Count, const value_type _Ch) noexcept;
-        bool _Reallocate_insert_back(const_pointer _Ptr, const size_type _Count) noexcept;
+        void _Reallocate_insert_back(const size_type _Count, const value_type _Ch);
+        void _Reallocate_insert_back(const_pointer _Ptr, const size_type _Count);
 
         // increases buffer capacity and stores new data at the specified position
-        bool _Reallocate_insert_at(
-            const size_type _Off, const size_type _Count, const value_type _Ch) noexcept;
-        bool _Reallocate_insert_at(
-            const size_type _Off, const_pointer _Ptr, const size_type _Count) noexcept;
+        void _Reallocate_insert_at(const size_type _Off, const size_type _Count, const value_type _Ch);
+        void _Reallocate_insert_at(const size_type _Off, const_pointer _Ptr, const size_type _Count);
 
         // increases buffer capacity and replaces the data at the specified position
-        bool _Reallocate_replace(const size_type _Off,
-            const size_type _Count, const size_type _Ch_count, const value_type _Ch) noexcept;
-        bool _Reallocate_replace(const size_type _Off,
-            const size_type _Count, const_pointer _Ptr, const size_type _Ptr_count) noexcept;
+        void _Reallocate_replace(
+            const size_type _Off, const size_type _Count, const size_type _Ch_count, const value_type _Ch);
+        void _Reallocate_replace(
+            const size_type _Off, const size_type _Count, const_pointer _Ptr, const size_type _Ptr_count);
 
         static constexpr size_type _Alloc_align = (2 * sizeof(void*)) / sizeof(value_type);
         static constexpr size_type _Alloc_mask  = _Alloc_align - 1;
@@ -446,58 +447,52 @@ namespace mjx {
     using unicode_string = string<wchar_t, char_traits<wchar_t>>;
 
     template <class _Elem, class _Traits>
-    inline bool operator==(
-        const string<_Elem, _Traits>& _Left, const string<_Elem, _Traits>& _Right) noexcept {
+    inline bool operator==(const string<_Elem, _Traits>& _Left, const string<_Elem, _Traits>& _Right) {
         return _Left.compare(_Right) == 0;
     }
 
     template <class _Elem, class _Traits>
-    inline bool operator==(
-        const string<_Elem, _Traits>& _Left, const string_view<_Elem, _Traits> _Right) noexcept {
+    inline bool operator==(const string<_Elem, _Traits>& _Left, const string_view<_Elem, _Traits> _Right) {
         return _Left.compare(_Right) == 0;
     }
 
     template <class _Elem, class _Traits>
-    inline bool operator==(
-        const string_view<_Elem, _Traits> _Left, const string<_Elem, _Traits>& _Right) noexcept {
+    inline bool operator==(const string_view<_Elem, _Traits> _Left, const string<_Elem, _Traits>& _Right) {
         return _Right.compare(_Left) == 0;
     }
 
     template <class _Elem, class _Traits>
-    inline bool operator==(const string<_Elem, _Traits>& _Left, const _Elem* const _Right) noexcept {
+    inline bool operator==(const string<_Elem, _Traits>& _Left, const _Elem* const _Right) {
         return _Left.compare(_Right) == 0;
     }
 
     template <class _Elem, class _Traits>
-    inline bool operator==(const _Elem* const _Left, const string<_Elem, _Traits>& _Right) noexcept {
+    inline bool operator==(const _Elem* const _Left, const string<_Elem, _Traits>& _Right) {
         return _Right.compare(_Left) == 0;
     }
 
     template <class _Elem, class _Traits>
-    inline bool operator!=(
-        const string<_Elem, _Traits>& _Left, const string<_Elem, _Traits>& _Right) noexcept {
+    inline bool operator!=(const string<_Elem, _Traits>& _Left, const string<_Elem, _Traits>& _Right) {
         return !(_Left == _Right);
     }
 
     template <class _Elem, class _Traits>
-    inline bool operator!=(
-        const string<_Elem, _Traits>& _Left, const string_view<_Elem, _Traits> _Right) noexcept {
+    inline bool operator!=(const string<_Elem, _Traits>& _Left, const string_view<_Elem, _Traits> _Right) {
         return !(_Left == _Right);
     }
 
     template <class _Elem, class _Traits>
-    inline bool operator!=(
-        const string_view<_Elem, _Traits> _Left, const string<_Elem, _Traits>& _Right) noexcept {
+    inline bool operator!=(const string_view<_Elem, _Traits> _Left, const string<_Elem, _Traits>& _Right) {
         return !(_Left == _Right);
     }
 
     template <class _Elem, class _Traits>
-    inline bool operator!=(const string<_Elem, _Traits>& _Left, const _Elem* const _Right) noexcept {
+    inline bool operator!=(const string<_Elem, _Traits>& _Left, const _Elem* const _Right) {
         return !(_Left == _Right);
     }
 
     template <class _Elem, class _Traits>
-    inline bool operator!=(const _Elem* const _Left, const string<_Elem, _Traits>& _Right) noexcept {
+    inline bool operator!=(const _Elem* const _Left, const string<_Elem, _Traits>& _Right) {
         return !(_Left == _Right);
     }
 
@@ -518,7 +513,7 @@ namespace mjx {
     }
 
     template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(const string<_Elem, _Traits>& _Left, const _Elem _Right) noexcept {
+    inline string<_Elem, _Traits> operator+(const string<_Elem, _Traits>& _Left, const _Elem _Right) {
         string<_Elem, _Traits> _Result = _Left;
         _Result.push_back(_Right);
         return ::std::move(_Result);
@@ -526,22 +521,21 @@ namespace mjx {
 
     template <class _Elem, class _Traits>
     inline string<_Elem, _Traits> operator+(
-        const string<_Elem, _Traits>& _Left, const string_view<_Elem, _Traits> _Right) noexcept {
+        const string<_Elem, _Traits>& _Left, const string_view<_Elem, _Traits> _Right) {
         string<_Elem, _Traits> _Result = _Left;
         _Result                       += _Right;
         return ::std::move(_Result);
     }
 
     template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(
-        const _Elem* const _Left, const string<_Elem, _Traits>& _Right) noexcept {
+    inline string<_Elem, _Traits> operator+(const _Elem* const _Left, const string<_Elem, _Traits>& _Right) {
         string<_Elem, _Traits> _Result = _Left;
         _Result                       += _Right;
         return ::std::move(_Result);
     }
 
     template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(const _Elem _Left, const string<_Elem, _Traits>& _Right) noexcept {
+    inline string<_Elem, _Traits> operator+(const _Elem _Left, const string<_Elem, _Traits>& _Right) {
         string<_Elem, _Traits> _Result = _Right;
         _Result.push_back(_Left);
         return ::std::move(_Result);
@@ -549,69 +543,66 @@ namespace mjx {
 
     template <class _Elem, class _Traits>
     inline string<_Elem, _Traits> operator+(
-        const string_view<_Elem, _Traits> _Left, const string<_Elem, _Traits>& _Right) noexcept {
+        const string_view<_Elem, _Traits> _Left, const string<_Elem, _Traits>& _Right) {
         string<_Elem, _Traits> _Result = _Left;
         _Result                       += _Right;
         return ::std::move(_Result);
     }
 
     template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(
-        string<_Elem, _Traits>&& _Left, string<_Elem, _Traits>&& _Right) noexcept {
+    inline string<_Elem, _Traits> operator+(string<_Elem, _Traits>&& _Left, string<_Elem, _Traits>&& _Right) {
         _Left.append(::std::move(_Right));
         return ::std::move(_Left);
     }
 
     template <class _Elem, class _Traits>
     inline string<_Elem, _Traits> operator+(
-        string<_Elem, _Traits>&& _Left, const string<_Elem, _Traits>& _Right) noexcept {
+        string<_Elem, _Traits>&& _Left, const string<_Elem, _Traits>& _Right) {
         _Left += _Right;
         return ::std::move(_Left);
     }
 
     template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(
-        string<_Elem, _Traits>&& _Left, const _Elem* const _Right) noexcept {
+    inline string<_Elem, _Traits> operator+(string<_Elem, _Traits>&& _Left, const _Elem* const _Right) {
         _Left += _Right;
         return ::std::move(_Left);
     }
 
     template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(string<_Elem, _Traits>&& _Left, const _Elem _Right) noexcept {
+    inline string<_Elem, _Traits> operator+(string<_Elem, _Traits>&& _Left, const _Elem _Right) {
         _Left.push_back(_Right);
         return ::std::move(_Left);
     }
 
     template <class _Elem, class _Traits>
     inline string<_Elem, _Traits> operator+(
-        string<_Elem, _Traits>&& _Left, const string_view<_Elem, _Traits> _Right) noexcept {
+        string<_Elem, _Traits>&& _Left, const string_view<_Elem, _Traits> _Right) {
         _Left += _Right;
         return ::std::move(_Left);
     }
 
     template <class _Elem, class _Traits>
     inline string<_Elem, _Traits> operator+(
-        const string<_Elem, _Traits>& _Left, string<_Elem, _Traits>&& _Right) noexcept {
+        const string<_Elem, _Traits>& _Left, string<_Elem, _Traits>&& _Right) {
         _Right += _Left;
         return ::std::move(_Right);
     }
 
     template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(
-        const _Elem* const _Left, string<_Elem, _Traits>&& _Right) noexcept {
+    inline string<_Elem, _Traits> operator+(const _Elem* const _Left, string<_Elem, _Traits>&& _Right) {
         _Right += _Left;
         return ::std::move(_Right);
     }
 
     template <class _Elem, class _Traits>
-    inline string<_Elem, _Traits> operator+(const _Elem _Left, string<_Elem, _Traits>&& _Right) noexcept {
+    inline string<_Elem, _Traits> operator+(const _Elem _Left, string<_Elem, _Traits>&& _Right) {
         _Right.push_back(_Left);
         return ::std::move(_Right);
     }
 
     template <class _Elem, class _Traits>
     inline string<_Elem, _Traits> operator+(
-        const string_view<_Elem, _Traits> _Left, string<_Elem, _Traits>&& _Right) noexcept {
+        const string_view<_Elem, _Traits> _Left, string<_Elem, _Traits>&& _Right) {
         _Right += _Left;
         return ::std::move(_Right);
     }

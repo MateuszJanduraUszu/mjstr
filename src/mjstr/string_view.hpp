@@ -148,19 +148,19 @@ namespace mjx {
         bool empty() const noexcept;
 
         // shrinks the view by moving its start forward
-        bool remove_prefix(const size_type _Count) noexcept;
+        void remove_prefix(const size_type _Count) noexcept;
 
         // shrinks the view by moving its end backward
-        bool remove_suffix(const size_type _Count) noexcept;
+        void remove_suffix(const size_type _Count) noexcept;
 
         // swaps the contents
         void swap(string_view& _Other) noexcept;
 
         // copies characters
-        size_type copy(pointer _Dest, size_type _Count, const size_type _Off = 0) const noexcept;
+        size_type copy(pointer _Dest, size_type _Count, const size_type _Off = 0) const;
 
         // returns a substring
-        string_view substr(const size_type _Off = 0, size_type _Count = npos) const noexcept;
+        string_view substr(const size_type _Off = 0, size_type _Count = npos) const;
 
         // compares two views
         int compare(const string_view _Str) const noexcept;
@@ -197,6 +197,9 @@ namespace mjx {
         size_type rfind(const_pointer _Ptr, const size_type _Off = npos) const noexcept;
 
     private:
+        // throws an exception if offset is out of range
+        void _Check_offset(const size_type _Off) const;
+
         const_pointer _Mydata;
         size_type _Mysize;
     };

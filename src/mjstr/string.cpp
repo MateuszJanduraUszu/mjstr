@@ -246,13 +246,8 @@ namespace mjx {
     string<_Elem, _Traits>::string() noexcept : _Mybuf() {}
 
     template <class _Elem, class _Traits>
-    string<_Elem, _Traits>::string(const string& _Other) noexcept : _Mybuf() {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(_Construct_from_ptr(
-            _Other._Mybuf._Get(), _Other._Mybuf._Size), "failed to construct the string");
-#else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
-        _Construct_from_ptr(_Other._Mybuf._Get(), _Other._Mybuf._Size); // may fail
-#endif // _DEBUG
+    string<_Elem, _Traits>::string(const string& _Other) : _Mybuf() {
+        _Construct_from_ptr(_Other._Mybuf._Get(), _Other._Mybuf._Size);
     }
 
     template <class _Elem, class _Traits>
@@ -261,41 +256,23 @@ namespace mjx {
     }
 
     template <class _Elem, class _Traits>
-    string<_Elem, _Traits>::string(const size_type _Count, const value_type _Ch) noexcept : _Mybuf() {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(_Construct_from_chars(_Count, _Ch), "failed to construct the string");
-#else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
-        _Construct_from_chars(_Count, _Ch); // may fail
-#endif // _DEBUG
+    string<_Elem, _Traits>::string(const size_type _Count, const value_type _Ch) : _Mybuf() {
+        _Construct_from_chars(_Count, _Ch);
     }
     
     template <class _Elem, class _Traits>
-    string<_Elem, _Traits>::string(const_pointer _Ptr, const size_type _Count) noexcept : _Mybuf() {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(_Construct_from_ptr(_Ptr, _Count), "failed to construct the string");
-#else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
-        _Construct_from_ptr(_Ptr, _Count); // may fail
-#endif // _DEBUG
+    string<_Elem, _Traits>::string(const_pointer _Ptr, const size_type _Count) : _Mybuf() {
+        _Construct_from_ptr(_Ptr, _Count);
     }
 
     template <class _Elem, class _Traits>
-    string<_Elem, _Traits>::string(const_pointer _Ptr) noexcept : _Mybuf() {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(
-            _Construct_from_ptr(_Ptr, _Traits::length(_Ptr)), "failed to construct the string");
-#else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
-        _Construct_from_ptr(_Ptr, _Traits::length(_Ptr)); // may fail
-#endif // _DEBUG
+    string<_Elem, _Traits>::string(const_pointer _Ptr) : _Mybuf() {
+        _Construct_from_ptr(_Ptr, _Traits::length(_Ptr));
     }
 
     template <class _Elem, class _Traits>
-    string<_Elem, _Traits>::string(const string_view<_Elem, _Traits> _Str) noexcept : _Mybuf() {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(
-            _Construct_from_ptr(_Str.data(), _Str.size()), "failed to construct the string");
-#else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
-        _Construct_from_ptr(_Str.data(), _Str.size()); // may fail
-#endif // _DEBUG
+    string<_Elem, _Traits>::string(const string_view<_Elem, _Traits> _Str) : _Mybuf() {
+        _Construct_from_ptr(_Str.data(), _Str.size());
     }
 
     template <class _Elem, class _Traits>
@@ -354,6 +331,18 @@ namespace mjx {
     }
 
     template <class _Elem, class _Traits>
+    typename string<_Elem, _Traits>::pointer
+        string<_Elem, _Traits>::_Allocate_space_for_capacity(size_type& _Count) {
+        // allocate _Count + 1 elements aligned to _Alloc_align boundary
+        _Count |= _Alloc_mask;
+        if (_Count > max_size() - 1) { // requested too much memory, break
+            mjstr_impl::_Throw_length_error("string too long");
+        }
+
+        return mjstr_impl::_Allocate<_Elem>(_Count + 1);
+    }
+
+    template <class _Elem, class _Traits>
     void string<_Elem, _Traits>::_Tidy() noexcept {
         _Mybuf._Deallocate_if_large();
         _Mybuf._Capacity = 0;
@@ -361,15 +350,17 @@ namespace mjx {
     }
 
     template <class _Elem, class _Traits>
-    typename string<_Elem, _Traits>::pointer
-        string<_Elem, _Traits>::_Allocate_space_for_capacity(size_type& _Count) noexcept {
-        // allocate _Count + 1 elements aligned to _Alloc_align boundary
-        _Count |= _Alloc_mask;
-        if (_Count > max_size() - 1) { // requested too much memory, break
-            return nullptr;
+    void string<_Elem, _Traits>::_Check_offset(const size_type _Off) const {
+        if (_Off >= _Mybuf._Size) { // must be within [0, _Mybuf._Size)
+            mjstr_impl::_Throw_out_of_range("invalid position");
         }
+    }
 
-        return mjstr_impl::_Allocate<_Elem>(_Count + 1);
+    template <class _Elem, class _Traits>
+    void string<_Elem, _Traits>::_Check_offset_for_insertion(const size_type _Off) const {
+        if (_Off > _Mybuf._Size) { // must be within [0, _Mybuf._Size]
+            mjstr_impl::_Throw_out_of_range("invalid position");
+        }
     }
 
     template <class _Elem, class _Traits>
@@ -392,95 +383,68 @@ namespace mjx {
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::_Construct_from_ptr(const_pointer _Ptr, const size_type _Count) noexcept {
+    void string<_Elem, _Traits>::_Construct_from_ptr(const_pointer _Ptr, const size_type _Count) {
         if (_Count <= _Small_buffer_capacity) { // use small buffer
             _Traits::copy(_Mybuf._Small, _Ptr, _Count);
             _Mybuf._Size                = _Count;
             _Mybuf._Small[_Mybuf._Size] = static_cast<value_type>(0);
         } else { // use large buffer
             size_type _New_capacity = _Count;
-            pointer _New_ptr        = _Allocate_space_for_capacity(_New_capacity);
-            if (!_New_ptr) { // allocation failed, break
-                return false;
-            }
-
+            pointer _New_ptr        = _Allocate_space_for_capacity(_New_capacity); // may throw
             _Traits::copy(_New_ptr, _Ptr, _Count);
             _Mybuf._Capacity            = _New_capacity;
             _Mybuf._Size                = _Count;
             _Mybuf._Large               = _New_ptr;
             _Mybuf._Large[_Mybuf._Size] = static_cast<value_type>(0);
         }
-
-        return true;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::_Construct_from_chars(const size_type _Count, const value_type _Ch) noexcept {
+    void string<_Elem, _Traits>::_Construct_from_chars(const size_type _Count, const value_type _Ch) {
         if (_Count <= _Small_buffer_capacity) { // use small buffer
             _Traits::assign(_Mybuf._Small, _Count, _Ch);
             _Mybuf._Size                = _Count;
             _Mybuf._Small[_Mybuf._Size] = static_cast<value_type>(0);
         } else { // use large buffer
             size_type _New_capacity = _Count;
-            pointer _New_ptr        = _Allocate_space_for_capacity(_New_capacity);
-            if (!_New_ptr) { // allocation failed, break
-                return false;
-            }
-
+            pointer _New_ptr        = _Allocate_space_for_capacity(_New_capacity); // may throw
             _Traits::assign(_New_ptr, _Count, _Ch);
             _Mybuf._Capacity            = _New_capacity;
             _Mybuf._Size                = _Count;
             _Mybuf._Large               = _New_ptr;
             _Mybuf._Large[_Mybuf._Size] = static_cast<value_type>(0);
         }
-
-        return true;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::_Reallocate_assign(const size_type _Count, const value_type _Ch) noexcept {
+    void string<_Elem, _Traits>::_Reallocate_assign(const size_type _Count, const value_type _Ch) {
         size_type _New_capacity = _Count;
-        pointer _New_ptr        = _Allocate_space_for_capacity(_New_capacity);
-        if (!_New_ptr) { // allocation failed, break
-            return false;
-        }
-
+        pointer _New_ptr        = _Allocate_space_for_capacity(_New_capacity); // may throw
         _Mybuf._Deallocate_if_large();
         _Traits::assign(_New_ptr, _Count, _Ch);
         _Mybuf._Capacity            = _New_capacity;
         _Mybuf._Size                = _Count;
         _Mybuf._Large               = _New_ptr;
         _Mybuf._Large[_Mybuf._Size] = static_cast<value_type>(0);
-        return true;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::_Reallocate_assign(const_pointer _Ptr, const size_type _Count) noexcept {
+    void string<_Elem, _Traits>::_Reallocate_assign(const_pointer _Ptr, const size_type _Count) {
         size_type _New_capacity = _Count;
-        pointer _New_ptr        = _Allocate_space_for_capacity(_New_capacity);
-        if (!_New_ptr) { // allocation failed, break
-            return false;
-        }
-
+        pointer _New_ptr        = _Allocate_space_for_capacity(_New_capacity); // may throw
         _Mybuf._Deallocate_if_large();
         _Traits::copy(_New_ptr, _Ptr, _Count);
         _Mybuf._Capacity            = _New_capacity;
         _Mybuf._Size                = _Count;
         _Mybuf._Large               = _New_ptr;
         _Mybuf._Large[_Mybuf._Size] = static_cast<value_type>(0);
-        return true;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::_Reallocate_insert_back(
-        const size_type _Count, const value_type _Ch) noexcept {
+    void string<_Elem, _Traits>::_Reallocate_insert_back(const size_type _Count, const value_type _Ch) {
         const size_type _New_size = _Mybuf._Size + _Count;
         size_type _New_capacity   = _Mybuf._Capacity + (_New_size - _Mybuf._Capacity);
-        pointer _New_ptr          = _Allocate_space_for_capacity(_New_capacity);
-        if (!_New_ptr) { // allocation failed, break
-            return false;
-        }
-
+        pointer _New_ptr          = _Allocate_space_for_capacity(_New_capacity); // may throw
         _Traits::copy(_New_ptr, _Mybuf._Get(), _Mybuf._Size);
         _Traits::assign(_New_ptr + _Mybuf._Size, _Count, _Ch);
         _Mybuf._Deallocate_if_large();
@@ -488,19 +452,13 @@ namespace mjx {
         _Mybuf._Size                = _New_size;
         _Mybuf._Large               = _New_ptr;
         _Mybuf._Large[_Mybuf._Size] = static_cast<value_type>(0);
-        return true;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::_Reallocate_insert_back(
-        const_pointer _Ptr, const size_type _Count) noexcept {
+    void string<_Elem, _Traits>::_Reallocate_insert_back(const_pointer _Ptr, const size_type _Count) {
         const size_type _New_size = _Mybuf._Size + _Count;
         size_type _New_capacity   = _Mybuf._Capacity + (_New_size - _Mybuf._Capacity);
-        pointer _New_ptr          = _Allocate_space_for_capacity(_New_capacity);
-        if (!_New_ptr) { // allocation failed, break
-            return false;
-        }
-
+        pointer _New_ptr          = _Allocate_space_for_capacity(_New_capacity); // may throw
         _Traits::copy(_New_ptr, _Mybuf._Get(), _Mybuf._Capacity);
         _Traits::copy(_New_ptr + _Mybuf._Size, _Ptr, _Count);
         _Mybuf._Deallocate_if_large();
@@ -508,20 +466,15 @@ namespace mjx {
         _Mybuf._Size                = _New_size;
         _Mybuf._Large               = _New_ptr;
         _Mybuf._Large[_Mybuf._Size] = static_cast<value_type>(0);
-        return true;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::_Reallocate_insert_at(
-        const size_type _Off, const size_type _Count, const value_type _Ch) noexcept {
+    void string<_Elem, _Traits>::_Reallocate_insert_at(
+        const size_type _Off, const size_type _Count, const value_type _Ch) {
         const size_type _New_size = _Mybuf._Size + _Count;
         size_type _New_capacity   = _Mybuf._Capacity + (_New_size - _Mybuf._Capacity);
-        pointer _New_ptr          = _Allocate_space_for_capacity(_New_capacity);
-        if (!_New_ptr) { // allocation failed, break
-            return false;
-        }
-
-        const_pointer _Old_ptr = _Mybuf._Get();
+        pointer _New_ptr          = _Allocate_space_for_capacity(_New_capacity); // may throw
+        const_pointer _Old_ptr    = _Mybuf._Get();
         _Traits::copy(_New_ptr, _Old_ptr, _Off);
         _Traits::assign(_New_ptr + _Off, _Count, _Ch);
         _Traits::copy(_New_ptr + _Off + _Count, _Old_ptr + _Off, _Mybuf._Size - _Off + 1);
@@ -529,20 +482,15 @@ namespace mjx {
         _Mybuf._Capacity = _New_capacity;
         _Mybuf._Size     = _New_size;
         _Mybuf._Large    = _New_ptr;
-        return true;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::_Reallocate_insert_at(
-        const size_type _Off, const_pointer _Ptr, const size_type _Count) noexcept {
+    void string<_Elem, _Traits>::_Reallocate_insert_at(
+        const size_type _Off, const_pointer _Ptr, const size_type _Count) {
         const size_type _New_size = _Mybuf._Size + _Count;
         size_type _New_capacity   = _Mybuf._Capacity + (_New_size - _Mybuf._Capacity);
-        pointer _New_ptr          = _Allocate_space_for_capacity(_New_capacity);
-        if (!_New_ptr) { // allocation failed, break
-            return false;
-        }
-
-        const_pointer _Old_ptr = _Mybuf._Get();
+        pointer _New_ptr          = _Allocate_space_for_capacity(_New_capacity); // may throw
+        const_pointer _Old_ptr    = _Mybuf._Get();
         _Traits::copy(_New_ptr, _Old_ptr, _Off);
         _Traits::copy(_New_ptr + _Off, _Ptr, _Count);
         _Traits::copy(_New_ptr + _Off + _Count, _Old_ptr + _Off, _Mybuf._Size - _Off + 1);
@@ -550,20 +498,15 @@ namespace mjx {
         _Mybuf._Capacity = _New_capacity;
         _Mybuf._Size     = _New_size;
         _Mybuf._Large    = _New_ptr;
-        return true;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::_Reallocate_replace(const size_type _Off,
-        const size_type _Count, const size_type _Ch_count, const value_type _Ch) noexcept {
+    void string<_Elem, _Traits>::_Reallocate_replace(
+        const size_type _Off, const size_type _Count, const size_type _Ch_count, const value_type _Ch) {
         const size_type _New_size = _Mybuf._Size + (_Ch_count - _Count);
         size_type _New_capacity   = _Mybuf._Capacity + (_New_size - _Mybuf._Capacity);
-        pointer _New_ptr          = _Allocate_space_for_capacity(_New_capacity);
-        if (!_New_ptr) { // allocation failed, break
-            return false;
-        }
-
-        const_pointer _Old_ptr = _Mybuf._Get();
+        pointer _New_ptr          = _Allocate_space_for_capacity(_New_capacity); // may throw
+        const_pointer _Old_ptr    = _Mybuf._Get();
         _Traits::copy(_New_ptr, _Old_ptr, _Off);
         _Traits::assign(_New_ptr + _Off, _Ch_count, _Ch);
         _Traits::copy(
@@ -572,20 +515,15 @@ namespace mjx {
         _Mybuf._Capacity = _New_capacity;
         _Mybuf._Size     = _New_size;
         _Mybuf._Large    = _New_ptr;
-        return true;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::_Reallocate_replace(const size_type _Off,
-        const size_type _Count, const_pointer _Ptr, const size_type _Ptr_count) noexcept {
+    void string<_Elem, _Traits>::_Reallocate_replace(
+        const size_type _Off, const size_type _Count, const_pointer _Ptr, const size_type _Ptr_count) {
         const size_type _New_size = _Mybuf._Size + (_Ptr_count - _Count);
         size_type _New_capacity   = _Mybuf._Capacity + (_New_size - _Mybuf._Capacity);
-        pointer _New_ptr          = _Allocate_space_for_capacity(_New_capacity);
-        if (!_New_ptr) { // allocation failed, break
-            return false;
-        }
-
-        const_pointer _Old_ptr = _Mybuf._Get();
+        pointer _New_ptr          = _Allocate_space_for_capacity(_New_capacity); // may throw
+        const_pointer _Old_ptr    = _Mybuf._Get();
         _Traits::copy(_New_ptr, _Old_ptr, _Off);
         _Traits::copy(_New_ptr + _Off, _Ptr, _Ptr_count);
         _Traits::copy(
@@ -594,7 +532,6 @@ namespace mjx {
         _Mybuf._Capacity = _New_capacity;
         _Mybuf._Size     = _New_size;
         _Mybuf._Large    = _New_ptr;
-        return true;
     }
 
     template <class _Elem, class _Traits>
@@ -603,95 +540,49 @@ namespace mjx {
     }
 
     template <class _Elem, class _Traits>
-    string<_Elem, _Traits>& string<_Elem, _Traits>::operator=(const string& _Str) noexcept {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(assign(_Str), "failed to assign characters to the string");
-#else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
-        assign(_Str); // may fail
-#endif // _DEBUG
-        return *this;
+    string<_Elem, _Traits>& string<_Elem, _Traits>::operator=(const string& _Str) {
+        return assign(_Str._Mybuf._Get(), _Str._Mybuf._Size);
     }
 
     template <class _Elem, class _Traits>
     string<_Elem, _Traits>& string<_Elem, _Traits>::operator=(string&& _Str) noexcept {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(assign(::std::move(_Str)), "failed to assign characters to the string");
-#else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
-        assign(::std::move(_Str)); // may fail
-#endif // _DEBUG
+        return assign(::std::move(_Str));
+    }
+
+    template <class _Elem, class _Traits>
+    string<_Elem, _Traits>& string<_Elem, _Traits>::operator=(const_pointer _Ptr) {
+        return assign(_Ptr, _Traits::length(_Ptr));
+    }
+
+    template <class _Elem, class _Traits>
+    string<_Elem, _Traits>& string<_Elem, _Traits>::operator=(const value_type _Ch) {
+        return assign(1, _Ch);
+    }
+
+    template <class _Elem, class _Traits>
+    string<_Elem, _Traits>& string<_Elem, _Traits>::operator=(const string_view<_Elem, _Traits> _Str) {
+        return assign(_Str.data(), _Str.size());
+    }
+
+    template <class _Elem, class _Traits>
+    string<_Elem, _Traits>& string<_Elem, _Traits>::operator+=(const string& _Str) {
+        return append(_Str._Mybuf._Get(), _Str._Mybuf._Size);
+    }
+
+    template <class _Elem, class _Traits>
+    string<_Elem, _Traits>& string<_Elem, _Traits>::operator+=(const_pointer _Ptr) {
+        return append(_Ptr, _Traits::length(_Ptr));
+    }
+
+    template <class _Elem, class _Traits>
+    string<_Elem, _Traits>& string<_Elem, _Traits>::operator+=(const value_type _Ch) {
+        push_back(_Ch);
         return *this;
     }
 
     template <class _Elem, class _Traits>
-    string<_Elem, _Traits>& string<_Elem, _Traits>::operator=(const_pointer _Ptr) noexcept {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(assign(_Ptr), "failed to assign characters to the string");
-#else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
-        assign(_Ptr); // may fail
-#endif // _DEBUG
-        return *this;
-    }
-
-    template <class _Elem, class _Traits>
-    string<_Elem, _Traits>& string<_Elem, _Traits>::operator=(const value_type _Ch) noexcept {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(assign(1, _Ch), "failed to assign a character to the string");
-#else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
-        assign(1, _Ch); // may fail
-#endif // _DEBUG
-        return *this;
-    }
-
-    template <class _Elem, class _Traits>
-    string<_Elem, _Traits>&
-        string<_Elem, _Traits>::operator=(const string_view<_Elem, _Traits> _Str) noexcept {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(assign(_Str), "failed to assign characters to the string");
-#else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
-        assign(_Str); // may fail
-#endif // _DEBUG
-        return *this;
-    }
-
-    template <class _Elem, class _Traits>
-    string<_Elem, _Traits>& string<_Elem, _Traits>::operator+=(const string& _Str) noexcept {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(append(_Str), "failed to append characters to the string");
-#else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
-        append(_Str); // may fail
-#endif // _DEBUG
-        return *this;
-    }
-
-    template <class _Elem, class _Traits>
-    string<_Elem, _Traits>& string<_Elem, _Traits>::operator+=(const_pointer _Ptr) noexcept {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(append(_Ptr), "failed to append characters to the string");
-#else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
-        append(_Ptr); // may fail
-#endif // _DEBUG
-        return *this;
-    }
-
-    template <class _Elem, class _Traits>
-    string<_Elem, _Traits>& string<_Elem, _Traits>::operator+=(const value_type _Ch) noexcept {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(push_back(_Ch), "failed to append character to the string");
-#else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
-        push_back(_Ch); // may fail
-#endif // _DEBUG
-        return *this;
-    }
-
-    template <class _Elem, class _Traits>
-    string<_Elem, _Traits>&
-        string<_Elem, _Traits>::operator+=(const string_view<_Elem, _Traits> _Str) noexcept {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(append(_Str), "failed to append characters to the string");
-#else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
-        append(_Str); // may fail
-#endif // _DEBUG
-        return *this;
+    string<_Elem, _Traits>& string<_Elem, _Traits>::operator+=(const string_view<_Elem, _Traits> _Str) {
+        return append(_Str.data(), _Str.size());
     }
 
     template <class _Elem, class _Traits>
@@ -835,27 +726,22 @@ namespace mjx {
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::reserve(size_type _New_capacity) noexcept {
+    void string<_Elem, _Traits>::reserve(size_type _New_capacity) {
         if (_Mybuf._Capacity >= _New_capacity || _New_capacity <= _Small_buffer_capacity) {
             // already reserved requested or more capacity, or fits in small buffer, do nothing
-            return true;
+            return;
         }
 
-        pointer _New_ptr = _Allocate_space_for_capacity(_New_capacity);
-        if (!_New_ptr) { // allocation failed, break
-            return false;
-        }
-
+        pointer _New_ptr = _Allocate_space_for_capacity(_New_capacity); // may throw
         _Traits::copy(_New_ptr, _Mybuf._Get(), _Mybuf._Size + 1); // copy data and null-terminator
         _Mybuf._Deallocate_if_large();
         _Mybuf._Capacity = _New_capacity;
         _Mybuf._Large    = _New_ptr;
-        return true;
     }
 
     template <class _Elem, class _Traits>
     typename string<_Elem, _Traits>::size_type string<_Elem, _Traits>::copy(
-        pointer _Dest, size_type _Count, const size_type _Off) const noexcept {
+        pointer _Dest, size_type _Count, const size_type _Off) const {
         return view().copy(_Dest, _Count, _Off);
     }
 
@@ -892,20 +778,19 @@ namespace mjx {
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::resize(const size_type _New_size, const value_type _Ch) noexcept {
+    void string<_Elem, _Traits>::resize(const size_type _New_size, const value_type _Ch) {
         if (_New_size <= _Mybuf._Size) { // decrease buffer size
             _Mybuf._Size                = _New_size;
             _Mybuf._Get()[_Mybuf._Size] = static_cast<value_type>(0);
-            return true;
         } else { // increase buffer size
-            return append(_New_size - _Mybuf._Size, _Ch);
+            append(_New_size - _Mybuf._Size, _Ch);
         }
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::expand(const size_type _Count, const value_type _Ch) noexcept {
+    void string<_Elem, _Traits>::expand(const size_type _Count, const value_type _Ch) {
         if (_Count == 0) { // no expanding, do nothing
-            return true;
+            return;
         }
 
         if (_Mybuf._Size + _Count <= _Mybuf._Capacity) { // found enough space, don't reallocate memory
@@ -913,179 +798,170 @@ namespace mjx {
             _Traits::assign(_Old_ptr + _Mybuf._Size, _Count, _Ch);
             _Mybuf._Size          += _Count;
             _Old_ptr[_Mybuf._Size] = static_cast<value_type>(0);
-            return true;
+            return;
         }
 
-        return _Reallocate_insert_back(_Count, _Ch);
+        _Reallocate_insert_back(_Count, _Ch);
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::shrink(const size_type _Count) noexcept {
+    void string<_Elem, _Traits>::shrink(const size_type _Count) {
         if (_Count == 0) { // no shrinking, do nothing
-            return true;
+            return;
         }
 
-        if (_Count > _Mybuf._Size) { // not enough characters to shrink, break
-            return false;
-        }
-
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Count <= _Mybuf._Size, "attempt to shrink too many characters");
+#endif // _DEBUG
         _Mybuf._Size               -= _Count;
         _Mybuf._Get()[_Mybuf._Size] = static_cast<value_type>(0);
-        return true;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::shrink_to_fit() noexcept {
+    void string<_Elem, _Traits>::shrink_to_fit() {
         if (_Mybuf._Is_small()) { // small string is always considered as fit
-            return true;
+            return;
         }
 
         if (_Mybuf._Size <= _Small_buffer_capacity) { // switch to small buffer
             _Mybuf._Switch_to_small();
-            return true;
+            return;
         }
 
         size_type _New_capacity = _Mybuf._Size | _Alloc_mask;
         if (_New_capacity < _Mybuf._Capacity) { // worth shrinking, do it
-            pointer _New_ptr = _Allocate_space_for_capacity(_New_capacity);
-            if (!_New_ptr) { // allocation failed, break
-                return false;
-            }
-
+            pointer _New_ptr = _Allocate_space_for_capacity(_New_capacity); // may throw
             _Traits::copy(_New_ptr, _Mybuf._Large, _Mybuf._Size + 1); // copy null-terminator too
             _Mybuf._Deallocate_if_large();
             _Mybuf._Capacity = _New_capacity;
             _Mybuf._Large    = _New_ptr;
         }
-
-        return true;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::assign(const size_type _Count, const value_type _Ch) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::assign(const size_type _Count, const value_type _Ch) {
         if (_Count <= _Mybuf._Capacity) { // found enough space, don't reallocate memory
             pointer _Old_ptr = _Mybuf._Get();
             _Traits::assign(_Old_ptr, _Count, _Ch);
             _Mybuf._Size           = _Count;
             _Old_ptr[_Mybuf._Size] = static_cast<value_type>(0);
-            return true;
+            return *this;
         }
 
-        return _Reallocate_assign(_Count, _Ch);
+        _Reallocate_assign(_Count, _Ch);
+        return *this;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::assign(const string& _Str) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::assign(const string& _Str) {
         if (this == ::std::addressof(_Str)) { // must not be this string
-            return false;
+            return *this;
         }
 
         return assign(_Str._Mybuf._Get(), _Str._Mybuf._Size);
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::assign(string&& _Str) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::assign(string&& _Str) noexcept {
         if (this == ::std::addressof(_Str)) { // must not be this string
-            return false;
+            return *this;
         }
 
         _Take_contents(_Str);
-        return true;
+        return *this;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::assign(const_pointer _Ptr, const size_type _Count) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::assign(const_pointer _Ptr, const size_type _Count) {
         if (_Count <= _Mybuf._Capacity) { // found enough space, don't reallocate memory
             pointer _Old_ptr = _Mybuf._Get();
             _Traits::copy(_Old_ptr, _Ptr, _Count);
             _Mybuf._Size           = _Count;
             _Old_ptr[_Mybuf._Size] = static_cast<value_type>(0);
-            return true;
+            return *this;
         }
 
-        return _Reallocate_assign(_Ptr, _Count);
+        _Reallocate_assign(_Ptr, _Count);
+        return *this;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::assign(const_pointer _Ptr) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::assign(const_pointer _Ptr) {
         return assign(_Ptr, _Traits::length(_Ptr));
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::assign(const string_view<_Elem, _Traits> _Str) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::assign(const string_view<_Elem, _Traits> _Str) {
         return assign(_Str.data(), _Str.size());
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::append(const size_type _Count, const value_type _Ch) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::append(const size_type _Count, const value_type _Ch) {
         if (_Mybuf._Size + _Count <= _Mybuf._Capacity) { // found enough space, don't reallocate memory
             pointer _Old_ptr = _Mybuf._Get();
             _Traits::assign(_Old_ptr + _Mybuf._Size, _Count, _Ch);
             _Mybuf._Size          += _Count;
             _Old_ptr[_Mybuf._Size] = static_cast<value_type>(0);
-            return true;
+            return *this;
         }
 
-        return _Reallocate_insert_back(_Count, _Ch);
+        _Reallocate_insert_back(_Count, _Ch);
+        return *this;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::append(const string& _Str) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::append(const string& _Str) {
         return append(_Str._Mybuf._Get(), _Str._Mybuf._Size);
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::append(const_pointer _Ptr, const size_type _Count) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::append(const_pointer _Ptr, const size_type _Count) {
         if (_Mybuf._Size + _Count <= _Mybuf._Capacity) { // found enough space, don't reallocate memory
             pointer _Old_ptr = _Mybuf._Get();
             _Traits::copy(_Old_ptr + _Mybuf._Size, _Ptr, _Count);
             _Mybuf._Size          += _Count;
             _Old_ptr[_Mybuf._Size] = static_cast<value_type>(0);
-            return true;
+            return *this;
         }
 
-        return _Reallocate_insert_back(_Ptr, _Count);
+        _Reallocate_insert_back(_Ptr, _Count);
+        return *this;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::append(const_pointer _Ptr) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::append(const_pointer _Ptr) {
         return append(_Ptr, _Traits::length(_Ptr));
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::append(const string_view<_Elem, _Traits> _Str) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::append(const string_view<_Elem, _Traits> _Str) {
         return append(_Str.data(), _Str.size());
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::push_back(const value_type _Ch) noexcept {
+    void string<_Elem, _Traits>::push_back(const value_type _Ch) {
         if (_Mybuf._Size + 1 <= _Mybuf._Capacity) { // found enough space, don't reallocate memory
             pointer _Old_ptr         = _Mybuf._Get();
             _Old_ptr[_Mybuf._Size]   = _Ch;
             _Old_ptr[++_Mybuf._Size] = static_cast<value_type>(0);
-            return true;
+            return;
         }
 
-        return _Reallocate_insert_back(1, _Ch);
+        _Reallocate_insert_back(1, _Ch);
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::pop_back() noexcept {
-        if (_Mybuf._Size == 0) { // not enough characters
-            return false;
-        }
-
+    void string<_Elem, _Traits>::pop_back() noexcept {
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Mybuf._Size > 0, "pop_back() called on empty string")
+#endif // _DEBUG
         --_Mybuf._Size;
         _Mybuf._Get()[_Mybuf._Size] = static_cast<value_type>(0);
-        return true;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::erase(const size_type _Off, size_type _Count) noexcept {
-        if (_Off >= _Mybuf._Size) {
-            return false;
-        }
-
+    string<_Elem, _Traits>& string<_Elem, _Traits>::erase(const size_type _Off, size_type _Count) {
+        _Check_offset(_Off);
         _Count = mjstr_impl::_Min(_Count, _Mybuf._Size - _Off);
         if (_Count > 0) { // remove some characters
             pointer _Old_ptr          = _Mybuf._Get() + _Off;
@@ -1094,97 +970,97 @@ namespace mjx {
             _Mybuf._Size = _New_size;
         }
 
-        return true;
+        return *this;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::erase(const const_iterator _Where) noexcept {
-        return erase(static_cast<size_type>(_Where._Myptr - _Mybuf._Get()), 1);
+    typename string<_Elem, _Traits>::iterator string<_Elem, _Traits>::erase(const const_iterator _Where) {
+        const size_type _Off = static_cast<size_type>(_Where._Myptr - _Mybuf._Get());
+        erase(_Off, 1);
+        return begin() + static_cast<difference_type>(_Off);
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::erase(const const_iterator _First, const const_iterator _Last) noexcept {
-        return erase(static_cast<size_type>(_First._Myptr - _Mybuf._Get()),
-            static_cast<size_type>(_Last._Myptr - _First._Myptr));
+    typename string<_Elem, _Traits>::iterator
+        string<_Elem, _Traits>::erase(const const_iterator _First, const const_iterator _Last) {
+        const size_type _Off = static_cast<size_type>(_First._Myptr - _Mybuf._Get());
+        erase(_Off, static_cast<size_type>(_Last._Myptr - _First._Myptr));
+        return begin() + static_cast<difference_type>(_Off);
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::insert(
-        const size_type _Off, const size_type _Count, const value_type _Ch) noexcept {
-        if (_Off > _Mybuf._Size) {
-            return false;
-        }
-
+    string<_Elem, _Traits>& string<_Elem, _Traits>::insert(
+        const size_type _Off, const size_type _Count, const value_type _Ch) {
+        _Check_offset_for_insertion(_Off);
         if (_Mybuf._Size + _Count <= _Mybuf._Capacity) { // found enough space, don't reallocate memory
             pointer _Old_ptr = _Mybuf._Get() + _Off;
             _Traits::move(_Old_ptr + _Count, _Old_ptr, _Mybuf._Size - _Off + 1); // move null-terminator too
             _Traits::assign(_Old_ptr, _Count, _Ch);
             _Mybuf._Size += _Count;
-            return true;
+            return *this;
         }
 
-        return _Reallocate_insert_at(_Off, _Count, _Ch);
+        _Reallocate_insert_at(_Off, _Count, _Ch);
+        return *this;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::insert(const size_type _Off, const_pointer _Ptr) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::insert(const size_type _Off, const_pointer _Ptr) {
         return insert(_Off, _Ptr, _Traits::length(_Ptr));
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::insert(
-        const size_type _Off, const_pointer _Ptr, const size_type _Count) noexcept {
-        if (_Off > _Mybuf._Size) {
-            return false;
-        }
-
+    string<_Elem, _Traits>& string<_Elem, _Traits>::insert(
+        const size_type _Off, const_pointer _Ptr, const size_type _Count) {
+        _Check_offset_for_insertion(_Off);
         if (_Mybuf._Size + _Count <= _Mybuf._Capacity) { // found enough space, don't reallocate memory
             pointer _Old_ptr = _Mybuf._Get() + _Off;
             _Traits::move(_Old_ptr + _Count, _Old_ptr, _Mybuf._Size - _Off + 1); // move null-terminator too
             _Traits::copy(_Old_ptr, _Ptr, _Count);
             _Mybuf._Size += _Count;
-            return true;
+            return *this;
         }
 
-        return _Reallocate_insert_at(_Off, _Ptr, _Count);
+        _Reallocate_insert_at(_Off, _Ptr, _Count);
+        return *this;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::insert(const size_type _Off, const string& _Str) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::insert(const size_type _Off, const string& _Str) {
         return insert(_Off, _Str._Mybuf._Get(), _Str._Mybuf._Size);
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::insert(const const_iterator _Where, const value_type _Ch) noexcept {
-        return insert(static_cast<size_type>(_Where._Myptr - _Mybuf._Get()), 1, _Ch);
+    typename string<_Elem, _Traits>::iterator
+        string<_Elem, _Traits>::insert(const const_iterator _Where, const value_type _Ch) {
+        const size_type _Off = static_cast<size_type>(_Where._Myptr - _Mybuf._Get());
+        insert(_Off, 1, _Ch);
+        return begin() + static_cast<difference_type>(_Off);
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::insert(
-        const size_type _Off, const string_view<_Elem, _Traits> _Str) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::insert(
+        const size_type _Off, const string_view<_Elem, _Traits> _Str) {
         return insert(_Off, _Str.data(), _Str.size());
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::replace(
-        const size_type _Off, size_type _Count, const string& _Str) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::replace(
+        const size_type _Off, size_type _Count, const string& _Str) {
         return replace(_Off, _Count, _Str._Mybuf._Get(), _Str._Mybuf._Size);
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::replace(
-        const const_iterator _First, const const_iterator _Last, const string& _Str) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::replace(
+        const const_iterator _First, const const_iterator _Last, const string& _Str) {
         return replace(static_cast<size_type>(_First._Myptr - _Mybuf._Get()),
             static_cast<size_type>(_Last._Myptr - _First._Myptr), _Str._Mybuf._Get(), _Str._Mybuf._Size);
     }
     
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::replace(
-        const size_type _Off, size_type _Count, const_pointer _Ptr, const size_type _Ptr_count) noexcept {
-        if (_Off > _Mybuf._Size) {
-            return false;
-        }
-
+    string<_Elem, _Traits>& string<_Elem, _Traits>::replace(
+        const size_type _Off, size_type _Count, const_pointer _Ptr, const size_type _Ptr_count) {
+        _Check_offset(_Off);
         _Count = mjstr_impl::_Min(_Count, _Mybuf._Size - _Off);
         if (_Count >= _Ptr_count) { // size will either remain the same or become smaller
             const size_type _Reduction = _Count - _Ptr_count;
@@ -1195,7 +1071,7 @@ namespace mjx {
                 _Mybuf._Size -= _Reduction;
             }
 
-            return true;
+            return *this;
         }
 
         const size_type _Growth = _Ptr_count - _Count;
@@ -1204,33 +1080,31 @@ namespace mjx {
             _Traits::move(_Old_ptr + _Ptr_count, _Old_ptr + _Count, _Mybuf._Size - _Off - _Count + 1);
             _Traits::copy(_Old_ptr, _Ptr, _Ptr_count);
             _Mybuf._Size += _Growth;
-            return true;
+            return *this;
         }
 
-        return _Reallocate_replace(_Off, _Count, _Ptr, _Ptr_count);
+        _Reallocate_replace(_Off, _Count, _Ptr, _Ptr_count);
+        return *this;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::replace(const const_iterator _First,
-        const const_iterator _Last, const_pointer _Ptr, const size_type _Count) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::replace(
+        const const_iterator _First, const const_iterator _Last, const_pointer _Ptr, const size_type _Count) {
         return replace(static_cast<size_type>(_First._Myptr - _Mybuf._Get()),
             static_cast<size_type>(_Last._Myptr - _First._Myptr), _Ptr, _Count);
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::replace(
-        const const_iterator _First, const const_iterator _Last, const_pointer _Ptr) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::replace(
+        const const_iterator _First, const const_iterator _Last, const_pointer _Ptr) {
         return replace(static_cast<size_type>(_First._Myptr - _Mybuf._Get()),
             static_cast<size_type>(_Last._Myptr - _First._Myptr), _Ptr, _Traits::length(_Ptr));
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::replace(
-        const size_type _Off, size_type _Count, const size_type _Ch_count, const value_type _Ch) noexcept {
-        if (_Off > _Mybuf._Size) {
-            return false;
-        }
-
+    string<_Elem, _Traits>& string<_Elem, _Traits>::replace(
+        const size_type _Off, size_type _Count, const size_type _Ch_count, const value_type _Ch) {
+        _Check_offset(_Off);
         _Count = mjstr_impl::_Min(_Count, _Mybuf._Size);
         if (_Count >= _Ch_count) { // size will either remain the same or become smaller
             const size_type _Reduction = _Count - _Ch_count;
@@ -1241,7 +1115,7 @@ namespace mjx {
                 _Mybuf._Size -= _Reduction;
             }
         
-            return true;
+            return *this;
         }
 
         const size_type _Growth = _Ch_count - _Count;
@@ -1250,41 +1124,42 @@ namespace mjx {
             _Traits::move(_Old_ptr + _Ch_count, _Old_ptr + _Count, _Mybuf._Size - _Off - _Count + 1);
             _Traits::assign(_Old_ptr, _Ch_count, _Ch);
             _Mybuf._Size += _Growth;
-            return true;
+            return *this;
         }
 
-        return _Reallocate_replace(_Off, _Count, _Ch_count, _Ch);
+        _Reallocate_replace(_Off, _Count, _Ch_count, _Ch);
+        return *this;
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::replace(
-        const size_type _Off, size_type _Count, const_pointer _Ptr) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::replace(
+        const size_type _Off, size_type _Count, const_pointer _Ptr) {
         return replace(_Off, _Count, _Ptr, _Traits::length(_Ptr));
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::replace(const const_iterator _First,
-        const const_iterator _Last, const size_type _Count, const value_type _Ch) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::replace(const const_iterator _First,
+        const const_iterator _Last, const size_type _Count, const value_type _Ch) {
         return replace(static_cast<size_type>(_First._Myptr - _Mybuf._Get()),
             static_cast<size_type>(_Last._Myptr - _First._Myptr), _Count, _Ch);
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::replace(
-        const size_type _Off, size_type _Count, const string_view<_Elem, _Traits> _Str) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::replace(
+        const size_type _Off, size_type _Count, const string_view<_Elem, _Traits> _Str) {
         return replace(_Off, _Count, _Str.data(), _Str.size());
     }
 
     template <class _Elem, class _Traits>
-    bool string<_Elem, _Traits>::replace(const const_iterator _First,
-        const const_iterator _Last, const string_view<_Elem, _Traits> _Str) noexcept {
+    string<_Elem, _Traits>& string<_Elem, _Traits>::replace(const const_iterator _First,
+        const const_iterator _Last, const string_view<_Elem, _Traits> _Str) {
         return replace(static_cast<size_type>(_First._Myptr - _Mybuf._Get()),
             static_cast<size_type>(_Last._Myptr - _First._Myptr), _Str.data(), _Str.size());
     }
 
     template <class _Elem, class _Traits>
     typename string<_Elem, _Traits>::size_type
-        string<_Elem, _Traits>::find(const string& _Str, const size_type _Off) const noexcept {
+        string<_Elem, _Traits>::find(const string& _Str, const size_type _Off) const {
         return view().find(_Str.view(), _Off);
     }
 
@@ -1308,7 +1183,7 @@ namespace mjx {
 
     template <class _Elem, class _Traits>
     typename string<_Elem, _Traits>::size_type
-        string<_Elem, _Traits>::rfind(const string& _Str, const size_type _Off) const noexcept {
+        string<_Elem, _Traits>::rfind(const string& _Str, const size_type _Off) const {
         return view().rfind(_Str.view(), _Off);
     }
 
@@ -1337,7 +1212,7 @@ namespace mjx {
     }
 
     template <class _Elem, class _Traits>
-    int string<_Elem, _Traits>::compare(const string& _Str) const noexcept {
+    int string<_Elem, _Traits>::compare(const string& _Str) const {
         return _Traits::compare(_Mybuf._Get(), _Mybuf._Size, _Str._Mybuf._Get(), _Str._Mybuf._Size);
     }
 
@@ -1403,11 +1278,8 @@ namespace mjx {
 
     template <class _Elem, class _Traits>
     string<_Elem, _Traits>
-        string<_Elem, _Traits>::substr(const size_type _Off, size_type _Count) const noexcept {
-        if (_Off >= _Mybuf._Size) {
-            return string{};
-        }
-
+        string<_Elem, _Traits>::substr(const size_type _Off, size_type _Count) const {
+        _Check_offset(_Off);
         _Count = mjstr_impl::_Min(_Count, _Mybuf._Size - _Off); // trim number of characters
         return string{_Mybuf._Get() + _Off, _Count};
     }

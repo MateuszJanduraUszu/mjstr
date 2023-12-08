@@ -59,7 +59,7 @@ namespace mjx {
 
         template <class _Traits>
         inline string<typename _Traits::_Extern_type> _Convert_string(
-            const typename _Traits::_Intern_type* const _Str, const size_t _Size) noexcept {
+            const typename _Traits::_Intern_type* const _Str, const size_t _Size) {
             using _Extern_char_t   = typename _Traits::_Extern_type;
             using _Str_t           = string<_Extern_char_t>;
             const size_t _Buf_size = _Traits::_Required_buffer_size(_Str, _Size);
@@ -67,7 +67,7 @@ namespace mjx {
                 return _Str_t{};
             }
 
-            _Str_t _Buf{_Buf_size, _Extern_char_t{0}};
+            _Str_t _Buf(_Buf_size, _Extern_char_t{0});
             return _Traits::_Convert(_Str, _Size, _Buf.data(), _Buf_size) ? ::std::move(_Buf) : _Str_t{};
         }
     } // namespace mjstr_impl

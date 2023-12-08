@@ -174,6 +174,13 @@ namespace mjx {
     }
 
     template <class _Elem, class _Traits>
+    void string_view<_Elem, _Traits>::_Check_offset(const size_type _Off) const {
+        if (_Off >= _Mysize) {
+            mjstr_impl::_Throw_out_of_range("invalid position");
+        }
+    }
+
+    template <class _Elem, class _Traits>
     typename string_view<_Elem, _Traits>::const_iterator string_view<_Elem, _Traits>::begin() const noexcept {
 #ifdef _DEBUG
         return const_iterator{_Mydata, _Mydata + _Mysize};
@@ -232,24 +239,20 @@ namespace mjx {
     }
 
     template <class _Elem, class _Traits>
-    bool string_view<_Elem, _Traits>::remove_prefix(const size_type _Count) noexcept {
-        if (_Count > _Mysize) {
-            return false;
-        }
-
+    void string_view<_Elem, _Traits>::remove_prefix(const size_type _Count) noexcept {
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Count <= _Mysize, "attempt to remove prefix longer than total string size");
+#endif // _DEBUG
         _Mydata += _Count;
         _Mysize -= _Count;
-        return true;
     }
 
     template <class _Elem, class _Traits>
-    bool string_view<_Elem, _Traits>::remove_suffix(const size_type _Count) noexcept {
-        if (_Count > _Mysize) {
-            return false;
-        }
-
+    void string_view<_Elem, _Traits>::remove_suffix(const size_type _Count) noexcept {
+#ifdef _DEBUG
+        _INTERNAL_ASSERT(_Count <= _Mysize, "attempt to remove suffix longer than total string size");
+#endif // _DEBUG
         _Mysize -= _Count;
-        return true;
     }
 
     template <class _Elem, class _Traits>
@@ -261,11 +264,8 @@ namespace mjx {
 
     template <class _Elem, class _Traits>
     typename string_view<_Elem, _Traits>::size_type string_view<_Elem, _Traits>::copy(
-        pointer _Dest, size_type _Count, const size_type _Off) const noexcept {
-        if (_Off >= _Mysize) {
-            return 0;
-        }
-
+        pointer _Dest, size_type _Count, const size_type _Off) const {
+        _Check_offset(_Off);
         _Count = mjstr_impl::_Min(_Count, _Mysize - _Off);
         _Traits::copy(_Dest, _Mydata + _Off, _Count);
         return _Count;
@@ -273,12 +273,9 @@ namespace mjx {
 
     template <class _Elem, class _Traits>
     string_view<_Elem, _Traits>
-        string_view<_Elem, _Traits>::substr(const size_type _Off, size_type _Count) const noexcept {
-        if (_Off >= _Mysize) {
-            return string_view{};
-        }
-
-        _Count = mjstr_impl::_Min(_Count, _Mysize - _Off); // trim number of characters
+        string_view<_Elem, _Traits>::substr(const size_type _Off, size_type _Count) const {
+        _Check_offset(_Off);
+        _Count = mjstr_impl::_Min(_Count, _Mysize - _Off); // adjust the number of returned characters
         return string_view{_Mydata + _Off, _Count};
     }
 

@@ -15,34 +15,26 @@ namespace mjx {
             utf8_string_view _Str = "   trim me";
 
             // Test 1: Remove three characters, the new string should be "trim me".
-            ASSERT_TRUE(_Str.remove_prefix(3));
+            _Str.remove_prefix(3);
             EXPECT_EQ(_Str.size(), 7);
             EXPECT_EQ(_Str, "trim me");
 
             // Test 2: Remove all characters, resulting in an empty string.
-            ASSERT_TRUE(_Str.remove_prefix(_Str.size()));
+            _Str.remove_prefix(_Str.size());
             EXPECT_TRUE(_Str.empty());
-
-            // Test 3: Attempt to remove one character from an empty string, which should fail.
-            ASSERT_TRUE(_Str.empty());
-            EXPECT_FALSE(_Str.remove_prefix(1));
         }
 
         TEST(string_view, remove_suffix) {
             utf8_string_view _Str = "trim me   ";
 
             // Test 1: Remove three characters, the new string should be "trim me".
-            ASSERT_TRUE(_Str.remove_suffix(3));
+            _Str.remove_suffix(3);
             EXPECT_EQ(_Str.size(), 7);
             EXPECT_EQ(_Str, "trim me");
 
             // Test 2: Remove all characters, resulting in an empty string.
-            ASSERT_TRUE(_Str.remove_suffix(_Str.size()));
+            _Str.remove_suffix(_Str.size());
             EXPECT_TRUE(_Str.empty());
-
-            // Test 3: Attempt to remove one character from an empty string, which should fail.
-            ASSERT_TRUE(_Str.empty());
-            EXPECT_FALSE(_Str.remove_suffix(1));
         }
 
         TEST(string_view, find) {

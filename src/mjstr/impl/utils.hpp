@@ -7,7 +7,7 @@
 #ifndef _MJSTR_IMPL_UTILS_HPP_
 #define _MJSTR_IMPL_UTILS_HPP_
 #include <crtdbg.h>
-#include <new>
+#include <stdexcept>
 #include <type_traits>
 
 // generic assert macro, useful in debug mode
@@ -38,13 +38,21 @@ namespace mjx {
         }
 
         template <class _Ty>
-        inline _Ty* _Allocate(const size_t _Count) noexcept {
-            return static_cast<_Ty*>(::operator new(_Count * sizeof(_Ty), ::std::nothrow));
+        inline _Ty* _Allocate(const size_t _Count) {
+            return static_cast<_Ty*>(::operator new(_Count * sizeof(_Ty))); // may throw
         }
 
         template <class _Ty>
         inline void _Deallocate(_Ty* const _Ptr, const size_t _Count) noexcept {
             ::operator delete(_Ptr, _Count * sizeof(_Ty));
+        }
+
+        __declspec(noreturn) inline void _Throw_length_error(const char* const _Msg) {
+            throw ::std::length_error(_Msg);
+        }
+
+        __declspec(noreturn) inline void _Throw_out_of_range(const char* const _Msg) {
+            throw ::std::out_of_range(_Msg);
         }
     } // namespace mjstr_impl
 } // namespace mjx
