@@ -4,9 +4,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <climits>
+#include <mjmem/exception.hpp>
+#include <mjmem/object_allocator.hpp>
 #include <mjstr/impl/utils.hpp>
 #include <mjstr/string.hpp>
-#include <type_traits>
+#include <utility>
 
 namespace mjx {
     template <class _Elem>
@@ -306,9 +308,10 @@ namespace mjx {
     template <class _Elem, class _Traits>
     void string<_Elem, _Traits>::_Internal_buffer::_Switch_to_small() noexcept {
         // moves data to small buffer and deallocates large one, assumes the data fits in small buffer
+        object_allocator<_Elem> _Al;
         value_type _Temp[_Small_buffer_size];
         _Traits::copy(_Temp, _Large, _Size);
-        mjstr_impl::_Deallocate(_Large, _Capacity + 1);
+        _Al.deallocate(_Large, _Capacity + 1);
         _Traits::copy(_Small, _Temp, _Size);
         _Capacity     = _Small_buffer_capacity;
         _Small[_Size] = static_cast<value_type>(0);
@@ -325,7 +328,8 @@ namespace mjx {
     template <class _Elem, class _Traits>
     void string<_Elem, _Traits>::_Internal_buffer::_Deallocate_if_large() noexcept {
         if (_Capacity > _Small_buffer_capacity) {
-            mjstr_impl::_Deallocate(_Large, _Capacity + 1);
+            object_allocator<_Elem> _Al;
+            _Al.deallocate(_Large, _Capacity + 1);
             _Large = nullptr;
         }
     }
@@ -336,10 +340,11 @@ namespace mjx {
         // allocate _Count + 1 elements aligned to _Alloc_align boundary
         _Count |= _Alloc_mask;
         if (_Count > max_size() - 1) { // requested too much memory, break
-            mjstr_impl::_Throw_length_error("string too long");
+            allocation_limit_exceeded::raise();
         }
 
-        return mjstr_impl::_Allocate<_Elem>(_Count + 1);
+        object_allocator<_Elem> _Al;
+        return _Al.allocate(_Count + 1);
     }
 
     template <class _Elem, class _Traits>
@@ -352,14 +357,14 @@ namespace mjx {
     template <class _Elem, class _Traits>
     void string<_Elem, _Traits>::_Check_offset(const size_type _Off) const {
         if (_Off >= _Mybuf._Size) { // must be within [0, _Mybuf._Size)
-            mjstr_impl::_Throw_out_of_range("invalid position");
+            resource_overrun::raise();
         }
     }
 
     template <class _Elem, class _Traits>
     void string<_Elem, _Traits>::_Check_offset_for_insertion(const size_type _Off) const {
         if (_Off > _Mybuf._Size) { // must be within [0, _Mybuf._Size]
-            mjstr_impl::_Throw_out_of_range("invalid position");
+            resource_overrun::raise();
         }
     }
 
@@ -716,7 +721,7 @@ namespace mjx {
 
     template <class _Elem, class _Traits>
     typename string<_Elem, _Traits>::size_type string<_Elem, _Traits>::max_size() noexcept {
-        return mjstr_impl::_Min(static_cast<size_type>(PTRDIFF_MAX),
+        return (::std::min)(static_cast<size_type>(PTRDIFF_MAX),
             static_cast<size_type>(-1) / sizeof(value_type)) - 1;
     }
 
@@ -761,11 +766,11 @@ namespace mjx {
             } else if (_Other_small) { // swap large with small
                 _Other._Mybuf._Swap_small_with_large(_Mybuf);
             } else { // swap two large buffers
-                mjstr_impl::_Swap(_Mybuf._Large, _Other._Mybuf._Large);
+                ::std::swap(_Mybuf._Large, _Other._Mybuf._Large);
             }
 
-            mjstr_impl::_Swap(_Mybuf._Size, _Other._Mybuf._Size);
-            mjstr_impl::_Swap(_Mybuf._Capacity, _Other._Mybuf._Capacity);
+            ::std::swap(_Mybuf._Size, _Other._Mybuf._Size);
+            ::std::swap(_Mybuf._Capacity, _Other._Mybuf._Capacity);
         }
     }
 
@@ -962,7 +967,7 @@ namespace mjx {
     template <class _Elem, class _Traits>
     string<_Elem, _Traits>& string<_Elem, _Traits>::erase(const size_type _Off, size_type _Count) {
         _Check_offset(_Off);
-        _Count = mjstr_impl::_Min(_Count, _Mybuf._Size - _Off);
+        _Count = (::std::min)(_Count, _Mybuf._Size - _Off);
         if (_Count > 0) { // remove some characters
             pointer _Old_ptr          = _Mybuf._Get() + _Off;
             const size_type _New_size = _Mybuf._Size - _Count;
@@ -1061,7 +1066,7 @@ namespace mjx {
     string<_Elem, _Traits>& string<_Elem, _Traits>::replace(
         const size_type _Off, size_type _Count, const_pointer _Ptr, const size_type _Ptr_count) {
         _Check_offset(_Off);
-        _Count = mjstr_impl::_Min(_Count, _Mybuf._Size - _Off);
+        _Count = (::std::min)(_Count, _Mybuf._Size - _Off);
         if (_Count >= _Ptr_count) { // size will either remain the same or become smaller
             const size_type _Reduction = _Count - _Ptr_count;
             pointer _Old_ptr           = _Mybuf._Get() + _Off;
@@ -1105,7 +1110,7 @@ namespace mjx {
     string<_Elem, _Traits>& string<_Elem, _Traits>::replace(
         const size_type _Off, size_type _Count, const size_type _Ch_count, const value_type _Ch) {
         _Check_offset(_Off);
-        _Count = mjstr_impl::_Min(_Count, _Mybuf._Size);
+        _Count = (::std::min)(_Count, _Mybuf._Size);
         if (_Count >= _Ch_count) { // size will either remain the same or become smaller
             const size_type _Reduction = _Count - _Ch_count;
             pointer _Old_ptr           = _Mybuf._Get() + _Off;
@@ -1280,7 +1285,7 @@ namespace mjx {
     string<_Elem, _Traits>
         string<_Elem, _Traits>::substr(const size_type _Off, size_type _Count) const {
         _Check_offset(_Off);
-        _Count = mjstr_impl::_Min(_Count, _Mybuf._Size - _Off); // trim number of characters
+        _Count = (::std::min)(_Count, _Mybuf._Size - _Off); // trim number of characters
         return string{_Mybuf._Get() + _Off, _Count};
     }
 

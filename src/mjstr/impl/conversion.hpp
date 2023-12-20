@@ -10,6 +10,7 @@
 #include <mjstr/impl/tinywin.hpp>
 #include <mjstr/string.hpp>
 #include <mjstr/string_view.hpp>
+#include <type_traits>
 
 namespace mjx {
     namespace mjstr_impl {

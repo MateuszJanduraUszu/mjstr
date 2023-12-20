@@ -3,8 +3,10 @@
 // Copyright (c) Mateusz Jandura. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+#include <mjmem/exception.hpp>
 #include <mjstr/impl/utils.hpp>
 #include <mjstr/string_view.hpp>
+#include <utility>
 
 namespace mjx {
     template <class _Elem>
@@ -176,7 +178,7 @@ namespace mjx {
     template <class _Elem, class _Traits>
     void string_view<_Elem, _Traits>::_Check_offset(const size_type _Off) const {
         if (_Off >= _Mysize) {
-            mjstr_impl::_Throw_out_of_range("invalid position");
+            resource_overrun::raise();
         }
     }
 
@@ -266,7 +268,7 @@ namespace mjx {
     typename string_view<_Elem, _Traits>::size_type string_view<_Elem, _Traits>::copy(
         pointer _Dest, size_type _Count, const size_type _Off) const {
         _Check_offset(_Off);
-        _Count = mjstr_impl::_Min(_Count, _Mysize - _Off);
+        _Count = (::std::min)(_Count, _Mysize - _Off);
         _Traits::copy(_Dest, _Mydata + _Off, _Count);
         return _Count;
     }
@@ -275,7 +277,7 @@ namespace mjx {
     string_view<_Elem, _Traits>
         string_view<_Elem, _Traits>::substr(const size_type _Off, size_type _Count) const {
         _Check_offset(_Off);
-        _Count = mjstr_impl::_Min(_Count, _Mysize - _Off); // adjust the number of returned characters
+        _Count = (::std::min)(_Count, _Mysize - _Off); // adjust the number of returned characters
         return string_view{_Mydata + _Off, _Count};
     }
 
@@ -415,11 +417,11 @@ namespace mjx {
         }
 
         if (_Str._Mysize == 0) { // empty string is always considered as found
-            return mjstr_impl::_Min(_Off, _Mysize - 1);
+            return (::std::min)(_Off, _Mysize - 1);
         }
 
         return _Traits::rfind(
-            _Mydata, mjstr_impl::_Min(_Off, _Mysize - _Str._Mysize), _Str._Mydata, _Str._Mysize);
+            _Mydata, (::std::min)(_Off, _Mysize - _Str._Mysize), _Str._Mydata, _Str._Mysize);
     }
 
     template <class _Elem, class _Traits>
@@ -429,7 +431,7 @@ namespace mjx {
             return npos;
         }
 
-        return _Traits::rfind(_Mydata, mjstr_impl::_Min(_Off, _Mysize - 1), _Ch);
+        return _Traits::rfind(_Mydata, (::std::min)(_Off, _Mysize - 1), _Ch);
     }
 
     template <class _Elem, class _Traits>
