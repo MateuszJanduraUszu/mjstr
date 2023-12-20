@@ -24,11 +24,11 @@ output directory if your application relies on it during runtime.
 To integrate MJSTR into your project, you can include the appropriate header files
 based on your requirements:
 
-* **<mjstr/api.hpp>**: This header contains export/import macro, don't include it directly.
-* **<mjstr/char_traits.hpp>**: This header contains `char_traits<CharT>` structure.
-* **<mjstr/conversion.hpp>**: This header contains functions for conversion between `byte_string`, `utf8_string` and `unicode_string`.
-* **<mjstr/string.hpp>**: This header contains string class.
-* **<mjstr/string_view.hpp>**: This header contains lightweight non-owning string class.
+* **<mjstr/api.hpp>**: Export/import macro, don't include it directly.
+* **<mjstr/char_traits.hpp>**: `char_traits<CharT>` structure.
+* **<mjstr/conversion.hpp>**: Conversion between `byte_string`, `utf8_string` and `unicode_string`.
+* **<mjstr/string.hpp>**: `string<CharT, Traits>` class.
+* **<mjstr/string_view.hpp>**: Lightweight non-owning string class.
 
 ## Compatibility
 
