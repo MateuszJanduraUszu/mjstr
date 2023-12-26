@@ -308,10 +308,9 @@ namespace mjx {
     template <class _Elem, class _Traits>
     void string<_Elem, _Traits>::_Internal_buffer::_Switch_to_small() noexcept {
         // moves data to small buffer and deallocates large one, assumes the data fits in small buffer
-        object_allocator<_Elem> _Al;
         value_type _Temp[_Small_buffer_size];
         _Traits::copy(_Temp, _Large, _Size);
-        _Al.deallocate(_Large, _Capacity + 1);
+        ::mjx::delete_object_array(_Large, _Capacity + 1);
         _Traits::copy(_Small, _Temp, _Size);
         _Capacity     = _Small_buffer_capacity;
         _Small[_Size] = static_cast<value_type>(0);
@@ -328,8 +327,7 @@ namespace mjx {
     template <class _Elem, class _Traits>
     void string<_Elem, _Traits>::_Internal_buffer::_Deallocate_if_large() noexcept {
         if (_Capacity > _Small_buffer_capacity) {
-            object_allocator<_Elem> _Al;
-            _Al.deallocate(_Large, _Capacity + 1);
+            ::mjx::delete_object_array(_Large, _Capacity + 1);
             _Large = nullptr;
         }
     }
@@ -343,8 +341,7 @@ namespace mjx {
             allocation_limit_exceeded::raise();
         }
 
-        object_allocator<_Elem> _Al;
-        return _Al.allocate(_Count + 1);
+        return ::mjx::allocate_object_array<_Elem>(_Count + 1);
     }
 
     template <class _Elem, class _Traits>
