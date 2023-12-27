@@ -27,19 +27,19 @@ namespace mjx {
             utf8_string_const_iterator _Iter = _Str.begin();
             
             // Test 1: Dereference the default iterator, should point to 'u'.
-            EXPECT_TRUE(*_Iter, 'u');
+            EXPECT_EQ(*_Iter, 'u');
 
             // Test 2: Advance by 5 and dereference, should point to 's'.
             _Iter += 5;
-            EXPECT_TRUE(*_Iter, 's');
+            EXPECT_EQ(*_Iter, 's');
 
             // Test 3: Advance by 3 and dereference, should point to 'i'.
             _Iter += 3;
-            EXPECT_TRUE(*_Iter, 'i');
+            EXPECT_EQ(*_Iter, 'i');
 
             // Test 4: Retreat by 7 and dereference, should point to 't'.
             _Iter -= 7;
-            EXPECT_TRUE(*_Iter, 't');
+            EXPECT_EQ(*_Iter, 't');
         }
 
         TEST(string_const_iterator, element_access) {
