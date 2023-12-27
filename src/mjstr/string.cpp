@@ -638,19 +638,14 @@ namespace mjx {
     }
 
     template <class _Elem, class _Traits>
-    typename string<_Elem, _Traits>::reference string<_Elem, _Traits>::at(const size_type _Idx) noexcept {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(_Idx < _Mybuf._Size, "attempt to access non-existent element");
-#endif // _DEBUG
+    typename string<_Elem, _Traits>::reference string<_Elem, _Traits>::at(const size_type _Idx) {
+        _Check_offset(_Idx);
         return _Mybuf._Get()[_Idx];
     }
 
     template <class _Elem, class _Traits>
-    typename string<_Elem, _Traits>::const_reference
-        string<_Elem, _Traits>::at(const size_type _Idx) const noexcept {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(_Idx < _Mybuf._Size, "attempt to access non-existent element");
-#endif // _DEBUG
+    typename string<_Elem, _Traits>::const_reference string<_Elem, _Traits>::at(const size_type _Idx) const {
+        _Check_offset(_Idx);
         return _Mybuf._Get()[_Idx];
     }
 
@@ -807,15 +802,12 @@ namespace mjx {
     }
 
     template <class _Elem, class _Traits>
-    void string<_Elem, _Traits>::shrink(const size_type _Count) {
+    void string<_Elem, _Traits>::shrink(const size_type _Count) noexcept {
         if (_Count == 0) { // no shrinking, do nothing
             return;
         }
 
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(_Count <= _Mybuf._Size, "attempt to shrink too many characters");
-#endif // _DEBUG
-        _Mybuf._Size               -= _Count;
+        _Mybuf._Size               -= (::std::min)(_Count, _Mybuf._Size);
         _Mybuf._Get()[_Mybuf._Size] = static_cast<value_type>(0);
     }
 

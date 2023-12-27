@@ -202,10 +202,8 @@ namespace mjx {
 
     template <class _Elem, class _Traits>
     typename string_view<_Elem, _Traits>::const_reference
-        string_view<_Elem, _Traits>::at(const size_type _Idx) const noexcept {
-#ifdef _DEBUG
-        _INTERNAL_ASSERT(_Idx < _Mysize, "attempt to access non-existent element");
-#endif // _DEBUG
+        string_view<_Elem, _Traits>::at(const size_type _Idx) const {
+        _Check_offset(_Idx);
         return _Mydata[_Idx];
     }
 
