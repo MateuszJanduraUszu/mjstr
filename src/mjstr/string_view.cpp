@@ -129,61 +129,42 @@ namespace mjx {
     }
 
     template <class _Elem>
-    bool string_view_iterator<_Elem>::operator!=(const string_view_iterator& _Other) const noexcept {
-        return _Myptr != _Other._Myptr;
-    }
-
-    template <class _Elem>
-    bool string_view_iterator<_Elem>::operator>(const string_view_iterator& _Other) const noexcept {
-        return _Myptr > _Other._Myptr;
-    }
-
-    template <class _Elem>
-    bool string_view_iterator<_Elem>::operator>=(const string_view_iterator& _Other) const noexcept {
-        return _Myptr >= _Other._Myptr;
-    }
-
-    template <class _Elem>
-    bool string_view_iterator<_Elem>::operator<(const string_view_iterator& _Other) const noexcept {
-        return _Myptr < _Other._Myptr;
-    }
-
-    template <class _Elem>
-    bool string_view_iterator<_Elem>::operator<=(const string_view_iterator& _Other) const noexcept {
-        return _Myptr <= _Other._Myptr;
+    ::std::strong_ordering
+        string_view_iterator<_Elem>::operator<=>(const string_view_iterator& _Other) const noexcept {
+        return _Myptr <=> _Other._Myptr;
     }
 
     template _MJSTR_API class string_view_iterator<byte_t>;
     template _MJSTR_API class string_view_iterator<char>;
     template _MJSTR_API class string_view_iterator<wchar_t>;
 
-    template <class _Elem, class _Traits>
-    string_view<_Elem, _Traits>::string_view() noexcept : _Mydata(nullptr), _Mysize(0) {}
+    template <class _Elem>
+    string_view<_Elem>::string_view() noexcept : _Mydata(nullptr), _Mysize(0) {}
 
-    template <class _Elem, class _Traits>
-    string_view<_Elem, _Traits>::string_view(const_pointer _Ptr, const size_type _Count) noexcept
+    template <class _Elem>
+    string_view<_Elem>::string_view(const_pointer _Ptr, const size_type _Count) noexcept
         : _Mydata(_Ptr), _Mysize(_Count) {}
 
-    template <class _Elem, class _Traits>
-    string_view<_Elem, _Traits>::string_view(const_pointer _Ptr) noexcept
-        : _Mydata(_Ptr), _Mysize(_Traits::length(_Ptr)) {}
+    template <class _Elem>
+    string_view<_Elem>::string_view(const_pointer _Ptr) noexcept
+        : _Mydata(_Ptr), _Mysize(traits_type::length(_Ptr)) {}
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::const_reference
-        string_view<_Elem, _Traits>::operator[](const size_type _Idx) const noexcept {
+    template <class _Elem>
+    typename string_view<_Elem>::const_reference
+        string_view<_Elem>::operator[](const size_type _Idx) const noexcept {
         // no bounds checking is performed, the behavior is undefined if _Idx >= size()
         return _Mydata[_Idx];
     }
 
-    template <class _Elem, class _Traits>
-    void string_view<_Elem, _Traits>::_Check_offset(const size_type _Off) const {
+    template <class _Elem>
+    void string_view<_Elem>::_Check_offset(const size_type _Off) const {
         if (_Off >= _Mysize) {
             resource_overrun::raise();
         }
     }
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::const_iterator string_view<_Elem, _Traits>::begin() const noexcept {
+    template <class _Elem>
+    typename string_view<_Elem>::const_iterator string_view<_Elem>::begin() const noexcept {
 #ifdef _DEBUG
         return const_iterator{_Mydata, _Mydata + _Mysize};
 #else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
@@ -191,8 +172,8 @@ namespace mjx {
 #endif // _DEBUG
     }
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::const_iterator string_view<_Elem, _Traits>::end() const noexcept {
+    template <class _Elem>
+    typename string_view<_Elem>::const_iterator string_view<_Elem>::end() const noexcept {
 #ifdef _DEBUG
         return const_iterator{_Mydata + _Mysize, _Mydata + _Mysize};
 #else // ^^^ _DEBUG ^^^ / vvv NDEBUG vvv
@@ -200,46 +181,45 @@ namespace mjx {
 #endif // _DEBUG
     }
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::const_reference
-        string_view<_Elem, _Traits>::at(const size_type _Idx) const {
+    template <class _Elem>
+    typename string_view<_Elem>::const_reference string_view<_Elem>::at(const size_type _Idx) const {
         _Check_offset(_Idx);
         return _Mydata[_Idx];
     }
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::const_reference string_view<_Elem, _Traits>::front() const noexcept {
+    template <class _Elem>
+    typename string_view<_Elem>::const_reference string_view<_Elem>::front() const noexcept {
 #ifdef _DEBUG
         _INTERNAL_ASSERT(_Mysize > 0, "attempt to access non-existent element");
 #endif // _DEBUG
         return _Mydata[0];
     }
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::const_reference string_view<_Elem, _Traits>::back() const noexcept {
+    template <class _Elem>
+    typename string_view<_Elem>::const_reference string_view<_Elem>::back() const noexcept {
 #ifdef _DEBUG
         _INTERNAL_ASSERT(_Mysize > 0, "attempt to access non-existent element");
 #endif // _DEBUG
         return _Mydata[_Mysize - 1];;
     }
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::const_pointer string_view<_Elem, _Traits>::data() const noexcept {
+    template <class _Elem>
+    typename string_view<_Elem>::const_pointer string_view<_Elem>::data() const noexcept {
         return _Mydata;
     }
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::size_type string_view<_Elem, _Traits>::size() const noexcept {
+    template <class _Elem>
+    typename string_view<_Elem>::size_type string_view<_Elem>::size() const noexcept {
         return _Mysize;
     }
 
-    template <class _Elem, class _Traits>
-    bool string_view<_Elem, _Traits>::empty() const noexcept {
+    template <class _Elem>
+    bool string_view<_Elem>::empty() const noexcept {
         return _Mysize == 0;
     }
 
-    template <class _Elem, class _Traits>
-    void string_view<_Elem, _Traits>::remove_prefix(const size_type _Count) noexcept {
+    template <class _Elem>
+    void string_view<_Elem>::remove_prefix(const size_type _Count) noexcept {
 #ifdef _DEBUG
         _INTERNAL_ASSERT(_Count <= _Mysize, "attempt to remove prefix longer than total string size");
 #endif // _DEBUG
@@ -247,109 +227,108 @@ namespace mjx {
         _Mysize -= _Count;
     }
 
-    template <class _Elem, class _Traits>
-    void string_view<_Elem, _Traits>::remove_suffix(const size_type _Count) noexcept {
+    template <class _Elem>
+    void string_view<_Elem>::remove_suffix(const size_type _Count) noexcept {
 #ifdef _DEBUG
         _INTERNAL_ASSERT(_Count <= _Mysize, "attempt to remove suffix longer than total string size");
 #endif // _DEBUG
         _Mysize -= _Count;
     }
 
-    template <class _Elem, class _Traits>
-    void string_view<_Elem, _Traits>::swap(string_view& _Other) noexcept {
+    template <class _Elem>
+    void string_view<_Elem>::swap(string_view& _Other) noexcept {
         const string_view _Temp = *this;
         *this                   = _Other;
         _Other                  = _Temp;
     }
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::size_type string_view<_Elem, _Traits>::copy(
-        pointer _Dest, size_type _Count, const size_type _Off) const {
+    template <class _Elem>
+    typename string_view<_Elem>::size_type
+        string_view<_Elem>::copy(pointer _Dest, size_type _Count, const size_type _Off) const {
         _Check_offset(_Off);
         _Count = (::std::min)(_Count, _Mysize - _Off);
-        _Traits::copy(_Dest, _Mydata + _Off, _Count);
+        traits_type::copy(_Dest, _Mydata + _Off, _Count);
         return _Count;
     }
 
-    template <class _Elem, class _Traits>
-    string_view<_Elem, _Traits>
-        string_view<_Elem, _Traits>::substr(const size_type _Off, size_type _Count) const {
+    template <class _Elem>
+    string_view<_Elem> string_view<_Elem>::substr(const size_type _Off, size_type _Count) const {
         _Check_offset(_Off);
         _Count = (::std::min)(_Count, _Mysize - _Off); // adjust the number of returned characters
         return string_view{_Mydata + _Off, _Count};
     }
 
-    template <class _Elem, class _Traits>
-    int string_view<_Elem, _Traits>::compare(const string_view _Str) const noexcept {
-        return _Traits::compare(_Mydata, _Mysize, _Str._Mydata, _Str._Mysize);
+    template <class _Elem>
+    int string_view<_Elem>::compare(const string_view _Str) const noexcept {
+        return traits_type::compare(_Mydata, _Mysize, _Str._Mydata, _Str._Mysize);
     }
 
-    template <class _Elem, class _Traits>
-    int string_view<_Elem, _Traits>::compare(const_pointer _Ptr, const size_type _Count) const noexcept {
-        return _Traits::compare(_Mydata, _Mysize, _Ptr, _Count);
+    template <class _Elem>
+    int string_view<_Elem>::compare(const_pointer _Ptr, const size_type _Count) const noexcept {
+        return traits_type::compare(_Mydata, _Mysize, _Ptr, _Count);
     }
 
-    template <class _Elem, class _Traits>
-    int string_view<_Elem, _Traits>::compare(const_pointer _Ptr) const noexcept {
-        return _Traits::compare(_Mydata, _Mysize, _Ptr, _Traits::length(_Ptr));
+    template <class _Elem>
+    int string_view<_Elem>::compare(const_pointer _Ptr) const noexcept {
+        return traits_type::compare(_Mydata, _Mysize, _Ptr, traits_type::length(_Ptr));
     }
 
-    template <class _Elem, class _Traits>
-    bool string_view<_Elem, _Traits>::starts_with(const string_view _Str) const noexcept {
+    template <class _Elem>
+    bool string_view<_Elem>::starts_with(const string_view _Str) const noexcept {
         if (_Str._Mysize > _Mysize) {
             return false;
         }
 
-        return _Traits::eq(_Mydata, _Str._Mydata, _Str._Mysize);
+        return traits_type::eq(_Mydata, _Str._Mydata, _Str._Mysize);
     }
 
-    template <class _Elem, class _Traits>
-    bool string_view<_Elem, _Traits>::starts_with(const value_type _Ch) const noexcept {
+    template <class _Elem>
+    bool string_view<_Elem>::starts_with(const value_type _Ch) const noexcept {
         return _Mysize > 0 ? _Mydata[0] == _Ch : false;
     }
 
-    template <class _Elem, class _Traits>
-    bool string_view<_Elem, _Traits>::starts_with(const_pointer _Ptr) const noexcept {
+    template <class _Elem>
+    bool string_view<_Elem>::starts_with(const_pointer _Ptr) const noexcept {
         return starts_with(string_view{_Ptr});
     }
 
-    template <class _Elem, class _Traits>
-    bool string_view<_Elem, _Traits>::ends_with(const string_view _Str) const noexcept {
+    template <class _Elem>
+    bool string_view<_Elem>::ends_with(const string_view _Str) const noexcept {
         if (_Str._Mysize > _Mysize) {
             return false;
         }
 
-        return _Traits::eq(_Mydata + (_Mysize - _Str._Mysize), _Str._Mydata, _Str._Mysize);
+        return traits_type::eq(_Mydata + (_Mysize - _Str._Mysize), _Str._Mydata, _Str._Mysize);
     }
 
-    template <class _Elem, class _Traits>
-    bool string_view<_Elem, _Traits>::ends_with(const value_type _Ch) const noexcept {
+    template <class _Elem>
+    bool string_view<_Elem>::ends_with(const value_type _Ch) const noexcept {
         return _Mysize > 0 ? _Mydata[_Mysize - 1] == _Ch : false;
     }
 
-    template <class _Elem, class _Traits>
-    bool string_view<_Elem, _Traits>::ends_with(const_pointer _Ptr) const noexcept {
+    template <class _Elem>
+    bool string_view<_Elem>::ends_with(const_pointer _Ptr) const noexcept {
         return ends_with(string_view{_Ptr});
     }
 
-    template <class _Elem, class _Traits>
-    bool string_view<_Elem, _Traits>::contains(const string_view _Str) const noexcept {
+    template <class _Elem>
+    bool string_view<_Elem>::contains(const string_view _Str) const noexcept {
         return find(_Str) != npos;
     }
 
-    template <class _Elem, class _Traits>
-    bool string_view<_Elem, _Traits>::contains(const value_type _Ch) const noexcept {
+    template <class _Elem>
+    bool string_view<_Elem>::contains(const value_type _Ch) const noexcept {
         return find(_Ch) != npos;
     }
 
-    template <class _Elem, class _Traits>
-    bool string_view<_Elem, _Traits>::contains(const_pointer _Ptr) const noexcept {
+    template <class _Elem>
+    bool string_view<_Elem>::contains(const_pointer _Ptr) const noexcept {
         return find(_Ptr) != npos;
     }
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::size_type string_view<_Elem, _Traits>::find(
-        const string_view _Str, const size_type _Off) const noexcept {
+    template <class _Elem>
+    typename string_view<_Elem>::size_type
+        string_view<_Elem>::find(const string_view _Str, const size_type _Off) const noexcept {
         if (_Off >= _Mysize || _Mysize - _Off < _Str._Mysize) {
             return npos;
         }
@@ -359,31 +338,31 @@ namespace mjx {
         }
         
         if (_Off == 0) { // offset has no meaning
-            return _Traits::find(_Mydata, _Mysize, _Str._Mydata, _Str._Mysize);
+            return traits_type::find(_Mydata, _Mysize, _Str._Mydata, _Str._Mysize);
         } else {
-            const size_type _Idx = _Traits::find(
+            const size_type _Idx = traits_type::find(
                 _Mydata + _Off, _Mysize - _Off, _Str._Mydata, _Str._Mysize);
             return _Idx != npos ? _Idx + _Off : npos;
         }
     }
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::size_type string_view<_Elem, _Traits>::find(
-        const value_type _Ch, const size_type _Off) const noexcept {
+    template <class _Elem>
+    typename string_view<_Elem>::size_type
+        string_view<_Elem>::find(const value_type _Ch, const size_type _Off) const noexcept {
         if (_Off >= _Mysize) {
             return npos;
         }
 
         if (_Off == 0) { // offset has no meaning
-            return _Traits::find(_Mydata, _Mysize, _Ch);
+            return traits_type::find(_Mydata, _Mysize, _Ch);
         } else {
-            const size_type _Idx = _Traits::find(_Mydata + _Off, _Mysize - _Off, _Ch);
+            const size_type _Idx = traits_type::find(_Mydata + _Off, _Mysize - _Off, _Ch);
             return _Idx != npos ? _Idx + _Off : npos;
         }
     }
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::size_type string_view<_Elem, _Traits>::find(
+    template <class _Elem>
+    typename string_view<_Elem>::size_type string_view<_Elem>::find(
         const_pointer _Ptr, const size_type _Off, const size_type _Count) const noexcept {
         if (_Off >= _Mysize) {
             return npos;
@@ -394,22 +373,22 @@ namespace mjx {
         }
 
         if (_Off == 0) { // offset has no meaning
-            return _Traits::find(_Mydata, _Mysize, _Ptr, _Count);
+            return traits_type::find(_Mydata, _Mysize, _Ptr, _Count);
         } else {
-            const size_type _Idx = _Traits::find(_Mydata + _Off, _Mysize - _Off, _Ptr, _Count);
+            const size_type _Idx = traits_type::find(_Mydata + _Off, _Mysize - _Off, _Ptr, _Count);
             return _Idx != npos ? _Idx + _Off : npos;
         }
     }
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::size_type string_view<_Elem, _Traits>::find(
-        const_pointer _Ptr, const size_type _Off) const noexcept {
+    template <class _Elem>
+    typename string_view<_Elem>::size_type
+        string_view<_Elem>::find(const_pointer _Ptr, const size_type _Off) const noexcept {
         return find(string_view{_Ptr}, _Off);
     }
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::size_type string_view<_Elem, _Traits>::rfind(
-        const string_view _Str, const size_type _Off) const noexcept {
+    template <class _Elem>
+    typename string_view<_Elem>::size_type
+        string_view<_Elem>::rfind(const string_view _Str, const size_type _Off) const noexcept {
         if (_Str._Mysize > _Mysize) {
             return npos;
         }
@@ -418,33 +397,33 @@ namespace mjx {
             return (::std::min)(_Off, _Mysize - 1);
         }
 
-        return _Traits::rfind(
+        return traits_type::rfind(
             _Mydata, (::std::min)(_Off, _Mysize - _Str._Mysize), _Str._Mydata, _Str._Mysize);
     }
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::size_type string_view<_Elem, _Traits>::rfind(
-        const value_type _Ch, const size_type _Off) const noexcept {
+    template <class _Elem>
+    typename string_view<_Elem>::size_type
+        string_view<_Elem>::rfind(const value_type _Ch, const size_type _Off) const noexcept {
         if (_Mysize == 0) {
             return npos;
         }
 
-        return _Traits::rfind(_Mydata, (::std::min)(_Off, _Mysize - 1), _Ch);
+        return traits_type::rfind(_Mydata, (::std::min)(_Off, _Mysize - 1), _Ch);
     }
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::size_type string_view<_Elem, _Traits>::rfind(
+    template <class _Elem>
+    typename string_view<_Elem>::size_type string_view<_Elem>::rfind(
         const_pointer _Ptr, const size_type _Off, const size_type _Count) const noexcept {
         return rfind(string_view{_Ptr, _Count}, _Off);
     }
 
-    template <class _Elem, class _Traits>
-    typename string_view<_Elem, _Traits>::size_type string_view<_Elem, _Traits>::rfind(
-        const_pointer _Ptr, const size_type _Off) const noexcept {
+    template <class _Elem>
+    typename string_view<_Elem>::size_type
+        string_view<_Elem>::rfind(const_pointer _Ptr, const size_type _Off) const noexcept {
         return rfind(string_view{_Ptr}, _Off);
     }
 
-    template _MJSTR_API class string_view<byte_t, char_traits<byte_t>>;
-    template _MJSTR_API class string_view<char, char_traits<char>>;
-    template _MJSTR_API class string_view<wchar_t, char_traits<wchar_t>>;
+    template _MJSTR_API class string_view<byte_t>;
+    template _MJSTR_API class string_view<char>;
+    template _MJSTR_API class string_view<wchar_t>;
 } // namespace mjx
