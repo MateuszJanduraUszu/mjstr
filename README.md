@@ -1,6 +1,6 @@
 # MJSTR
 
-MJSTR is an internal module designed for use in future projects. It is written in C++17.
+MJSTR is an internal module designed for use in future projects. It is written in C++20.
 
 ## Setup
 
@@ -34,7 +34,7 @@ based on your requirements:
 
 MJSTR is compatible with all versions of Windows that support the `MultiByteToWideChar()`
 and `WideCharToMultiByte()`, as these are the only WinAPI functions utilized in the project.
-Additionally, the project requires support for C++17.
+Additionally, the project requires support for C++20.
 
 ## Questions and support
 
