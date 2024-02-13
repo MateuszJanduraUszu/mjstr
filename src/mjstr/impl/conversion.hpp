@@ -24,8 +24,9 @@ namespace mjx {
                     return 0;
                 }
 
-                return static_cast<size_t>(::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
-                    reinterpret_cast<const char*>(_Str), static_cast<int>(_Size), nullptr, 0));
+                const int _Req_size = ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
+                    reinterpret_cast<const char*>(_Str), static_cast<int>(_Size), nullptr, 0);
+                return _Req_size > 0 ? static_cast<size_t>(_Req_size) : static_cast<size_t>(-1);
             }
 
             static bool _Convert(const _Multibyte* const _Str,
@@ -46,8 +47,9 @@ namespace mjx {
                     return 0;
                 }
 
-                return static_cast<size_t>(::WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
-                    _Str, static_cast<int>(_Size), nullptr, 0, nullptr, nullptr));
+                const int _Req_size = ::WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
+                    _Str, static_cast<int>(_Size), nullptr, 0, nullptr, nullptr);
+                return _Req_size > 0 ? static_cast<size_t>(_Req_size) : static_cast<size_t>(-1);
             }
 
             static bool _Convert(const wchar_t* const _Str,
@@ -58,18 +60,28 @@ namespace mjx {
             }
         };
 
-        template <class _Traits>
-        inline string<typename _Traits::_Extern_type> _Convert_string(
-            const typename _Traits::_Intern_type* const _Str, const size_t _Size) {
-            using _Extern_char_t   = typename _Traits::_Extern_type;
-            using _Str_t           = string<_Extern_char_t>;
+        template <class _Extern_char, class _Intern_char>
+        using _Choose_cvt_traits = ::std::conditional_t<::std::is_same_v<_Intern_char, wchar_t>,
+            _Wide_to_multibyte_traits<_Extern_char>, _Multibyte_to_wide_traits<_Intern_char>>;
+
+        template <class _Extern_char, class _Intern_char>
+        inline string<_Extern_char> _Convert_string(const _Intern_char* const _Str, const size_t _Size) {
+            using _Traits          = _Choose_cvt_traits<_Extern_char, _Intern_char>;
+            using _Str_t           = string<_Extern_char>;
             const size_t _Buf_size = _Traits::_Required_buffer_size(_Str, _Size);
-            if (_Buf_size == 0) { // no conversion needed or an error occured, break
+            if (_Buf_size == 0 || _Buf_size == static_cast<size_t>(-1)) {
+                // no conversion needed or an error occured, break
                 return _Str_t{};
             }
 
-            _Str_t _Buf(_Buf_size, _Extern_char_t{0});
+            _Str_t _Buf(_Buf_size, _Extern_char{0});
             return _Traits::_Convert(_Str, _Size, _Buf.data(), _Buf_size) ? ::std::move(_Buf) : _Str_t{};
+        }
+
+        template <class _Extern_char, class _Intern_char>
+        inline size_t _Convert_string_length(const string_view<_Intern_char> _Str) noexcept {
+            using _Traits = _Choose_cvt_traits<_Extern_char, _Intern_char>;
+            return _Traits::_Required_buffer_size(_Str.data(), _Str.size());
         }
     } // namespace mjstr_impl
 } // namespace mjx
