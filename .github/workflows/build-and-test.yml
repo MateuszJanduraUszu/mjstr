@@ -30,8 +30,7 @@ jobs:
 
       - name: Configure project
         run: |
-          cmake --preset=${{ matrix.arch }} -DMJSTR_BUILD_DEPENDENCIES=ON -DMJSTR_BUILD_BENCHMARKS=ON \
-          -DMJSTR_BUILD_TESTS=ON -DMJSTR_INSTALL_LIBRARY=ON
+          cmake --preset=${{ matrix.arch }} -DMJSTR_BUILD_DEPENDENCIES=ON -DMJSTR_BUILD_BENCHMARKS=ON -DMJSTR_BUILD_TESTS=ON -DMJSTR_INSTALL_LIBRARY=ON
 
       - name: Build project
         run: |
