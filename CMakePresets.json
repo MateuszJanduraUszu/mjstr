@@ -1,0 +1,52 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "generator": "Visual Studio 17 2022",
+            "binaryDir": "${sourceDir}/build/${presetName}"
+        },
+        {
+            "name": "x64",
+            "inherits": "base",
+            "description": "x64 Visual Studio 2022 Configuration",
+            "architecture": {
+                "strategy": "set",
+                "value": "x64"
+            },
+            "cacheVariables": {
+                "MJX_PLATFORM_ARCH": "x64"
+            }
+        },
+        {
+            "name": "x86",
+            "inherits": "base",
+            "description": "x86 Visual Studio 2022 Configuration",
+            "architecture": {
+                "strategy": "set",
+                "value": "Win32"
+            },
+            "cacheVariables": {
+                "MJX_PLATFORM_ARCH": "x86"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "x64",
+            "description": "Build x64 MJSTR",
+            "configurePreset": "x64"
+        },
+        {
+            "name": "x86",
+            "description": "Build x86 MJSTR",
+            "configurePreset": "x86"
+        }
+    ]
+}
