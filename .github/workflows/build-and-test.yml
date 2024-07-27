@@ -1,0 +1,45 @@
+# build-and-test.yml
+
+# Copyright (c) Mateusz Jandura. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+
+name: Build and test
+on:
+  push:
+    paths-ignore:
+      - '**/**.md'
+
+jobs:
+  build-and-test:
+    # Note: As pull requests are required before merging, workflows already run during review.
+    #       Thus, 'main' branch pushes are skipped.
+    if: ${{ github.ref_name != 'main' }}
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64, x86]
+        config: [Debug, Release]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Update submodules
+        run: |
+          git submodule update --init --recursive
+
+      - name: Configure project
+        run: |
+          cmake --preset=${{ matrix.arch }} -DMJSTR_BUILD_DEPENDENCIES=ON -DMJSTR_BUILD_BENCHMARKS=ON -DMJSTR_BUILD_TESTS=ON -DMJSTR_INSTALL_LIBRARY=ON
+
+      - name: Build project
+        run: |
+          cmake --build build/${{ matrix.arch }} --preset=${{ matrix.arch }} --config ${{ matrix.config }}
+
+      - name: Install project
+        run: |
+          cmake --install build/${{ matrix.arch }} --config ${{ matrix.config }}
+
+      - name: Run tests
+        run: |
+          ctest --test-dir build/${{ matrix.arch }}/tests --output-on-failure -C ${{ matrix.config }}
