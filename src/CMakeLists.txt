@@ -21,6 +21,7 @@ set(MJSTR_INC_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/mjstr/conversion.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mjstr/string.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mjstr/string_view.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/mjstr/version.hpp"
 )
 set(MJSTR_SRC_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/mjstr/char_traits.cpp"
