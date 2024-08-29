@@ -9,15 +9,15 @@
         {
             "name": "base",
             "hidden": true,
-            "generator": "Visual Studio 17 2022",
+            "generator": "Ninja Multi-Config",
             "binaryDir": "${sourceDir}/build/${presetName}"
         },
         {
             "name": "x64",
             "inherits": "base",
-            "description": "x64 Visual Studio 2022 Configuration",
+            "description": "x64 Ninja Configuration",
             "architecture": {
-                "strategy": "set",
+                "strategy": "external",
                 "value": "x64"
             },
             "cacheVariables": {
@@ -27,10 +27,10 @@
         {
             "name": "x86",
             "inherits": "base",
-            "description": "x86 Visual Studio 2022 Configuration",
+            "description": "x86 Ninja Configuration",
             "architecture": {
-                "strategy": "set",
-                "value": "Win32"
+                "strategy": "external",
+                "value": "x86"
             },
             "cacheVariables": {
                 "MJX_PLATFORM_ARCH": "x86"
