@@ -59,7 +59,7 @@ namespace mjx {
                 const _Elem* const _Haystack, const size_t _Haystack_size, const _Elem _Needle) noexcept {
                 const _Elem* const _Match = static_cast<const _Elem*>(
 #if defined(_MJX_CLANG) || defined(_MJX_MSVC)
-                    __builtin_char_memchr(_Haystack, _Needle, _Haystack_size)
+                    __builtin_char_memchr(reinterpret_cast<const char*>(_Haystack), _Needle, _Haystack_size)
 #else // ^^^ Clang or MSVC ^^^ / vvv GCC vvv
                     __builtin_memchr(_Haystack, _Needle, _Haystack_size)
 #endif // defined(_MJX_CLANG) || defined(_MJX_MSVC)
