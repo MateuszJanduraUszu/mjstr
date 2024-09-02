@@ -5,7 +5,6 @@
 
 #include <mjstr/conversion.hpp>
 #include <mjstr/impl/conversion.hpp>
-#include <type_traits>
 
 namespace mjx {
     size_t to_byte_string_length(const utf8_string_view _Str) noexcept {

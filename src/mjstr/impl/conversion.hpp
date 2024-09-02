@@ -7,10 +7,14 @@
 #ifndef _MJSTR_IMPL_CONVERSION_HPP_
 #define _MJSTR_IMPL_CONVERSION_HPP_
 #include <cstddef>
-#include <mjstr/impl/tinywin.hpp>
 #include <mjstr/string.hpp>
 #include <mjstr/string_view.hpp>
 #include <type_traits>
+#ifdef _MJX_WINDOWS
+#include <mjstr/impl/tinywin.hpp>
+#else // ^^^ _MJX_WINDOWS ^^^ / vvv _MJX_LINUX vvv
+#include <cstdlib>
+#endif // _MJX_WINDOWS
 
 namespace mjx {
     namespace mjstr_impl {
@@ -20,20 +24,32 @@ namespace mjx {
             using _Extern_type = wchar_t;
 
             static size_t _Required_buffer_size(const _Multibyte* const _Str, const size_t _Size) noexcept {
+                // calculate the required buffer size for _Str conversion (null-terminator excluded)
                 if (_Size == 0) {
                     return 0;
                 }
 
+#ifdef _MJX_WINDOWS
                 const int _Req_size = ::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
                     reinterpret_cast<const char*>(_Str), static_cast<int>(_Size), nullptr, 0);
                 return _Req_size > 0 ? static_cast<size_t>(_Req_size) : static_cast<size_t>(-1);
+#else // ^^^ _MJX_WINDOWS ^^^ / vvv _MJX_LINUX vvv
+                (void) _Size;
+                return ::mbstowcs(nullptr, reinterpret_cast<const char*>(_Str), 0);
+#endif // _MJX_WINDOWS
             }
 
             static bool _Convert(const _Multibyte* const _Str,
                 const size_t _Str_size, wchar_t* const _Buf, const size_t _Buf_size) noexcept {
+                // convert multibyte character sequence to wide characters
+#ifdef _MJX_WINDOWS
                 return static_cast<size_t>(::MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS,
                     reinterpret_cast<const char*>(_Str), static_cast<int>(_Str_size),
                         _Buf, static_cast<int>(_Buf_size))) == _Buf_size;
+#else // ^^^ _MJX_WINDOWS ^^^ / vvv _MJX_LINUX vvv
+                (void) _Str_size;
+                return ::mbstowcs(_Buf, reinterpret_cast<const char*>(_Str), _Buf_size) == _Buf_size;
+#endif // _MJX_WINDOWS
             }
         };
 
@@ -43,20 +59,32 @@ namespace mjx {
             using _Extern_type = _Multibyte;
             
             static size_t _Required_buffer_size(const wchar_t* const _Str, const size_t _Size) noexcept {
+                // calculate the required buffer size for _Str conversion (null-terminator excluded)
                 if (_Size == 0) {
                     return 0;
                 }
 
+#ifdef _MJX_WINDOWS
                 const int _Req_size = ::WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS,
                     _Str, static_cast<int>(_Size), nullptr, 0, nullptr, nullptr);
                 return _Req_size > 0 ? static_cast<size_t>(_Req_size) : static_cast<size_t>(-1);
+#else // ^^^ _MJX_WINDOWS ^^^ / vvv _MJX_LINUX vvv
+                (void) _Size;
+                return ::wcstombs(nullptr, _Str, 0);
+#endif // _MJX_WINDOWS
             }
 
             static bool _Convert(const wchar_t* const _Str,
                 const size_t _Str_size, _Multibyte* const _Buf, const size_t _Buf_size) noexcept {
+                // convert wide character sequence to multibyte
+#ifdef _MJX_WINDOWS
                 return static_cast<size_t>(::WideCharToMultiByte(CP_UTF8, WC_NO_BEST_FIT_CHARS,
                     _Str, static_cast<int>(_Str_size), reinterpret_cast<char*>(_Buf),
                         static_cast<int>(_Buf_size), nullptr, nullptr)) == _Buf_size;
+#else // ^^^ _MJX_WINDOWS ^^^ / vvv _MJX_LINUX vvv
+                (void) _Str_size;
+                return ::wcstombs(reinterpret_cast<char*>(_Buf), _Str, _Buf_size) == _Buf_size;
+#endif // _MJX_WINDOWS
             }
         };
 
