@@ -106,7 +106,7 @@ namespace mjx {
         string_view(const string_view&) noexcept            = default;
         string_view& operator=(const string_view&) noexcept = default;
 
-        string_view(nullptr_t) = delete;
+        string_view(::std::nullptr_t) = delete;
 
         // accesses the specified character
         const_reference operator[](const size_type _Idx) const noexcept;
@@ -173,15 +173,13 @@ namespace mjx {
         // find characters in the view
         size_type find(const string_view _Str, const size_type _Off = 0) const noexcept;
         size_type find(const value_type _Ch, const size_type _Off = 0) const noexcept;
-        size_type find(
-            const_pointer _Ptr, const size_type _Off, const size_type _Count) const noexcept;
+        size_type find(const_pointer _Ptr, const size_type _Off, const size_type _Count) const noexcept;
         size_type find(const_pointer _Ptr, const size_type _Off = 0) const noexcept;
 
         // finds the last occurrence of a substring
         size_type rfind(const string_view _Str, const size_type _Off = npos) const noexcept;
         size_type rfind(const value_type _Ch, const size_type _Off = npos) const noexcept;
-        size_type rfind(
-            const_pointer _Ptr, const size_type _Off, const size_type _Count) const noexcept;
+        size_type rfind(const_pointer _Ptr, const size_type _Off, const size_type _Count) const noexcept;
         size_type rfind(const_pointer _Ptr, const size_type _Off = npos) const noexcept;
 
     private:
@@ -213,8 +211,7 @@ namespace mjx {
     }
 
     template <class _Elem>
-    inline ::std::strong_ordering operator<=>(
-        const string_view<_Elem> _Left, const _Elem* const _Right) noexcept {
+    inline ::std::strong_ordering operator<=>(const string_view<_Elem> _Left, const _Elem* const _Right) noexcept {
         return _Left.compare(_Right) <=> 0;
     }
 } // namespace mjx

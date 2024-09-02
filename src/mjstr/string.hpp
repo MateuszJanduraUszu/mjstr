@@ -171,8 +171,8 @@ namespace mjx {
         string(const_pointer _Ptr);
         string(const string_view<_Elem> _Str);
 
-        string(nullptr_t)            = delete;
-        string& operator=(nullptr_t) = delete;
+        string(::std::nullptr_t)            = delete;
+        string& operator=(::std::nullptr_t) = delete;
 
         // returns a non-modifiable string_view into the entire string
         operator string_view<_Elem>() const noexcept;
@@ -297,31 +297,26 @@ namespace mjx {
         // replaces specified portion of the string
         string& replace(const size_type _Off, size_type _Count, const string& _Str);
         string& replace(const const_iterator _First, const const_iterator _Last, const string& _Str);
+        string& replace(const size_type _Off, size_type _Count, const_pointer _Ptr, const size_type _Ptr_count);
         string& replace(
-            const size_type _Off, size_type _Count, const_pointer _Ptr, const size_type _Ptr_count);
-        string& replace(const const_iterator _First,
-            const const_iterator _Last, const_pointer _Ptr, const size_type _Count);
+            const const_iterator _First, const const_iterator _Last, const_pointer _Ptr, const size_type _Count);
         string& replace(const size_type _Off, size_type _Count, const_pointer _Ptr);
         string& replace(const const_iterator _First, const const_iterator _Last, const_pointer _Ptr);
+        string& replace(const size_type _Off, size_type _Count, const size_type _Ch_count, const value_type _Ch);
         string& replace(
-            const size_type _Off, size_type _Count, const size_type _Ch_count, const value_type _Ch);
-        string& replace(const const_iterator _First,
-            const const_iterator _Last, const size_type _Count, const value_type _Ch);
+            const const_iterator _First, const const_iterator _Last, const size_type _Count, const value_type _Ch);
         string& replace(const size_type _Off, size_type _Count, const string_view<_Elem> _Str);
-        string& replace(
-            const const_iterator _First, const const_iterator _Last, const string_view<_Elem> _Str);
+        string& replace(const const_iterator _First, const const_iterator _Last, const string_view<_Elem> _Str);
 
         // finds the first occurrence of the given substring
         size_type find(const string& _Str, const size_type _Off = 0) const;
-        size_type find(
-            const_pointer _Ptr, const size_type _Off, const size_type _Count) const noexcept;
+        size_type find(const_pointer _Ptr, const size_type _Off, const size_type _Count) const noexcept;
         size_type find(const value_type _Ch, const size_type _Off = 0) const noexcept;
         size_type find(const string_view<_Elem> _Str, const size_type _Off = 0) const noexcept;
 
         // finds the last occurrence of the given substring
         size_type rfind(const string& _Str, const size_type _Off = npos) const;
-        size_type rfind(
-            const_pointer _Ptr, const size_type _Off, const size_type _Count) const noexcept;
+        size_type rfind(const_pointer _Ptr, const size_type _Off, const size_type _Count) const noexcept;
         size_type rfind(const_pointer _Ptr, const size_type _Off = npos) const noexcept;
         size_type rfind(const value_type _Ch, const size_type _Off = npos) const noexcept;
         size_type rfind(const string_view<_Elem> _Str, const size_type _Off = npos) const noexcept;

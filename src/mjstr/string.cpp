@@ -3,12 +3,12 @@
 // Copyright (c) Mateusz Jandura. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-#include <climits>
+#include <algorithm>
+#include <cstdint>
 #include <mjmem/exception.hpp>
 #include <mjmem/object_allocator.hpp>
 #include <mjstr/impl/utils.hpp>
 #include <mjstr/string.hpp>
-#include <utility>
 
 namespace mjx {
     template <class _Elem>
@@ -138,9 +138,9 @@ namespace mjx {
         return _Myptr <=> _Other._Myptr;
     }
 
-    template _MJSTR_API class string_const_iterator<byte_t>;
-    template _MJSTR_API class string_const_iterator<char>;
-    template _MJSTR_API class string_const_iterator<wchar_t>;
+    template class _MJSTR_API string_const_iterator<byte_t>;
+    template class _MJSTR_API string_const_iterator<char>;
+    template class _MJSTR_API string_const_iterator<wchar_t>;
 
     template <class _Elem>
     string_iterator<_Elem>::string_iterator() noexcept : _Mybase() {}
@@ -221,9 +221,9 @@ namespace mjx {
         return _Temp;
     }
 
-    template _MJSTR_API class string_iterator<byte_t>;
-    template _MJSTR_API class string_iterator<char>;
-    template _MJSTR_API class string_iterator<wchar_t>;
+    template class _MJSTR_API string_iterator<byte_t>;
+    template class _MJSTR_API string_iterator<char>;
+    template class _MJSTR_API string_iterator<wchar_t>;
 
     template <class _Elem>
     string<_Elem>::string() noexcept : _Mybuf() {}
@@ -1242,7 +1242,7 @@ namespace mjx {
         return string{_Mybuf._Get() + _Off, _Count};
     }
 
-    template _MJSTR_API class string<byte_t>;
-    template _MJSTR_API class string<char>;
-    template _MJSTR_API class string<wchar_t>;
+    template class _MJSTR_API string<byte_t>;
+    template class _MJSTR_API string<char>;
+    template class _MJSTR_API string<wchar_t>;
 } // namespace mjx
