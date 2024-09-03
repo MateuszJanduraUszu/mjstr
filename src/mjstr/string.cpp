@@ -1172,22 +1172,22 @@ namespace mjx {
 
     template <class _Elem>
     int string<_Elem>::compare(const string& _Str) const {
-        return traits_type::compare(_Mybuf._Get(), _Mybuf._Size, _Str._Mybuf._Get(), _Str._Mybuf._Size);
+        return view().compare(_Str.view());
     }
 
     template <class _Elem>
     int string<_Elem>::compare(const_pointer _Ptr, const size_type _Count) const noexcept {
-        return traits_type::compare(_Mybuf._Get(), _Mybuf._Size, _Ptr, _Count);
+        return view().compare(_Ptr, _Count);
     }
 
     template <class _Elem>
     int string<_Elem>::compare(const_pointer _Ptr) const noexcept {
-        return traits_type::compare(_Mybuf._Get(), _Mybuf._Size, _Ptr, traits_type::length(_Ptr));
+        return view().compare(_Ptr);
     }
 
     template <class _Elem>
     int string<_Elem>::compare(const string_view<_Elem> _Str) const noexcept {
-        return traits_type::compare(_Mybuf._Get(), _Mybuf._Size, _Str.data(), _Str.size());
+        return view().compare(_Str);
     }
 
     template <class _Elem>

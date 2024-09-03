@@ -31,9 +31,9 @@ namespace mjx {
     }
 
     template <class _Elem>
-    int char_traits<_Elem>::compare(const char_type* const _Left, const size_t _Left_size,
-        const char_type* const _Right, const size_t _Right_size) noexcept {
-        return mjstr_impl::_Char_traits<_Elem>::_Compare(_Left, _Left_size, _Right, _Right_size);
+    int char_traits<_Elem>::compare(
+        const char_type* const _Left, const char_type* const _Right, const size_t _Count) noexcept {
+        return mjstr_impl::_Char_traits<_Elem>::_Compare(_Left, _Right, _Count);
     }
 
     template <class _Elem>

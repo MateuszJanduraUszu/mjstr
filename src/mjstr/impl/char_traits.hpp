@@ -42,13 +42,8 @@ namespace mjx {
 #endif // defined(_MJX_CLANG) || defined(_MJX_GCC)
             }
 
-            static int _Compare(const _Elem* const _Left, const size_t _Left_size,
-                const _Elem* const _Right, const size_t _Right_size) noexcept {
-                if (_Left_size != _Right_size) { // definitely not equal
-                    return _Left_size < _Right_size ? -1 : 1;
-                }
-
-                return __builtin_memcmp(_Left, _Right, _Left_size);
+            static int _Compare(const _Elem* const _Left, const _Elem* const _Right, const size_t _Count) noexcept {
+                return __builtin_memcmp(_Left, _Right, _Count);
             }
 
             static size_t _Length(const _Elem* const _Str) noexcept {
@@ -97,16 +92,11 @@ namespace mjx {
 #endif // _MJX_CLANG
             }
 
-            static int _Compare(const wchar_t* const _Left, const size_t _Left_size,
-                const wchar_t* const _Right, const size_t _Right_size) noexcept {
-                if (_Left_size != _Right_size) { // definitely not equal
-                    return _Left_size < _Right_size ? -1 : 1;
-                }
-
+            static int _Compare(const wchar_t* const _Left, const wchar_t* const _Right, const size_t _Count) noexcept {
 #if defined(_MJX_CLANG) || defined(_MJX_MSVC)
-                return __builtin_wmemcmp(_Left, _Right, _Left_size);
+                return __builtin_wmemcmp(_Left, _Right, _Count);
 #else // ^^^ Clang or MSVC ^^^ / vvv GCC vvv
-                return ::wmemcmp(_Left, _Right, _Left_size);
+                return ::wmemcmp(_Left, _Right, _Count);
 #endif // defined(_MJX_CLANG) || defined(_MJX_MSVC)
             }
 

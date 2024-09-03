@@ -258,17 +258,26 @@ namespace mjx {
 
     template <class _Elem>
     int string_view<_Elem>::compare(const string_view _Str) const noexcept {
-        return traits_type::compare(_Mydata, _Mysize, _Str._Mydata, _Str._Mysize);
+        const int _Result = traits_type::compare(_Mydata, _Str._Mydata, (::std::min)(_Mysize, _Str._Mysize));
+        if (_Result != 0) { // strings are not equal, no further checks required
+            return _Result;
+        }
+
+        if (_Mysize == _Str._Mysize) { // strings are equal, so are the sizes
+            return 0;
+        }
+
+        return _Mysize < _Str._Mysize ? -1 : 1;
     }
 
     template <class _Elem>
     int string_view<_Elem>::compare(const_pointer _Ptr, const size_type _Count) const noexcept {
-        return traits_type::compare(_Mydata, _Mysize, _Ptr, _Count);
+        return compare(string_view{_Ptr, _Count});
     }
 
     template <class _Elem>
     int string_view<_Elem>::compare(const_pointer _Ptr) const noexcept {
-        return traits_type::compare(_Mydata, _Mysize, _Ptr, traits_type::length(_Ptr));
+        return compare(string_view{_Ptr});
     }
 
     template <class _Elem>
