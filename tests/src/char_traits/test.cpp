@@ -71,8 +71,8 @@ namespace mjx {
         EXPECT_EQ(_Traits::compare("utf8_string", "unicode_string", 0), 0); // empty strings are always equal
         EXPECT_EQ(_Traits::compare("string", "string", 6), 0);
         EXPECT_EQ(_Traits::compare("string", "string_view", 6), 0);
-        EXPECT_EQ(_Traits::compare("String", "string", 6), -1);
-        EXPECT_EQ(_Traits::compare("BCDE", "ABCD", 4), 1);
+        EXPECT_LT(_Traits::compare("String", "string", 6), 0);
+        EXPECT_GT(_Traits::compare("BCDE", "ABCD", 4), 0);
     }
 
     TEST(char_traits, length) {
