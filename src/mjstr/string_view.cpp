@@ -3,10 +3,10 @@
 // Copyright (c) Mateusz Jandura. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+#include <algorithm>
 #include <mjmem/exception.hpp>
 #include <mjstr/impl/utils.hpp>
 #include <mjstr/string_view.hpp>
-#include <utility>
 
 namespace mjx {
     template <class _Elem>
@@ -108,16 +108,14 @@ namespace mjx {
     }
 
     template <class _Elem>
-    string_view_iterator<_Elem>
-        string_view_iterator<_Elem>::operator+(const difference_type _Off) const noexcept {
+    string_view_iterator<_Elem> string_view_iterator<_Elem>::operator+(const difference_type _Off) const noexcept {
         string_view_iterator _Temp = *this;
         _Temp                     += _Off;
         return _Temp;
     }
 
     template <class _Elem>
-    string_view_iterator<_Elem>
-        string_view_iterator<_Elem>::operator-(const difference_type _Off) const noexcept {
+    string_view_iterator<_Elem> string_view_iterator<_Elem>::operator-(const difference_type _Off) const noexcept {
         string_view_iterator _Temp = *this;
         _Temp                     -= _Off;
         return _Temp;
@@ -134,9 +132,9 @@ namespace mjx {
         return _Myptr <=> _Other._Myptr;
     }
 
-    template _MJSTR_API class string_view_iterator<byte_t>;
-    template _MJSTR_API class string_view_iterator<char>;
-    template _MJSTR_API class string_view_iterator<wchar_t>;
+    template class _MJSTR_API string_view_iterator<byte_t>;
+    template class _MJSTR_API string_view_iterator<char>;
+    template class _MJSTR_API string_view_iterator<wchar_t>;
 
     template <class _Elem>
     string_view<_Elem>::string_view() noexcept : _Mydata(nullptr), _Mysize(0) {}
@@ -200,7 +198,7 @@ namespace mjx {
 #ifdef _DEBUG
         _INTERNAL_ASSERT(_Mysize > 0, "attempt to access non-existent element");
 #endif // _DEBUG
-        return _Mydata[_Mysize - 1];;
+        return _Mydata[_Mysize - 1];
     }
 
     template <class _Elem>
@@ -260,17 +258,26 @@ namespace mjx {
 
     template <class _Elem>
     int string_view<_Elem>::compare(const string_view _Str) const noexcept {
-        return traits_type::compare(_Mydata, _Mysize, _Str._Mydata, _Str._Mysize);
+        const int _Result = traits_type::compare(_Mydata, _Str._Mydata, (::std::min)(_Mysize, _Str._Mysize));
+        if (_Result != 0) { // strings are not equal, no further checks required
+            return _Result;
+        }
+
+        if (_Mysize == _Str._Mysize) { // strings are equal, so are the sizes
+            return 0;
+        }
+
+        return _Mysize < _Str._Mysize ? -1 : 1;
     }
 
     template <class _Elem>
     int string_view<_Elem>::compare(const_pointer _Ptr, const size_type _Count) const noexcept {
-        return traits_type::compare(_Mydata, _Mysize, _Ptr, _Count);
+        return compare(string_view{_Ptr, _Count});
     }
 
     template <class _Elem>
     int string_view<_Elem>::compare(const_pointer _Ptr) const noexcept {
-        return traits_type::compare(_Mydata, _Mysize, _Ptr, traits_type::length(_Ptr));
+        return compare(string_view{_Ptr});
     }
 
     template <class _Elem>
@@ -340,8 +347,7 @@ namespace mjx {
         if (_Off == 0) { // offset has no meaning
             return traits_type::find(_Mydata, _Mysize, _Str._Mydata, _Str._Mysize);
         } else {
-            const size_type _Idx = traits_type::find(
-                _Mydata + _Off, _Mysize - _Off, _Str._Mydata, _Str._Mysize);
+            const size_type _Idx = traits_type::find(_Mydata + _Off, _Mysize - _Off, _Str._Mydata, _Str._Mysize);
             return _Idx != npos ? _Idx + _Off : npos;
         }
     }
@@ -423,7 +429,7 @@ namespace mjx {
         return rfind(string_view{_Ptr}, _Off);
     }
 
-    template _MJSTR_API class string_view<byte_t>;
-    template _MJSTR_API class string_view<char>;
-    template _MJSTR_API class string_view<wchar_t>;
+    template class _MJSTR_API string_view<byte_t>;
+    template class _MJSTR_API string_view<char>;
+    template class _MJSTR_API string_view<wchar_t>;
 } // namespace mjx

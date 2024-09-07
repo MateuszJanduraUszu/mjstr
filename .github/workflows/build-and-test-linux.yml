@@ -1,9 +1,9 @@
-# build-and-test.yml
+# build-and-test-linux.yml
 
 # Copyright (c) Mateusz Jandura. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-name: Build and test
+name: Build and test (Linux)
 on:
   push:
     paths-ignore:
@@ -14,9 +14,10 @@ jobs:
     # Note: As pull requests are required before merging, workflows already run during review.
     #       Thus, 'main' branch pushes are skipped.
     if: ${{ github.ref_name != 'main' }}
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
+        compiler: [Clang, GCC]
         arch: [x64, x86]
         config: [Debug, Release]
 
@@ -28,9 +29,21 @@ jobs:
         run: |
           git submodule update --init --recursive
 
-      - name: Configure project
+      - name: Install Ninja
         run: |
-          cmake --preset=${{ matrix.arch }} -DMJSTR_BUILD_DEPENDENCIES=ON -DMJSTR_BUILD_BENCHMARKS=ON -DMJSTR_BUILD_TESTS=ON -DMJSTR_INSTALL_LIBRARY=ON
+          sudo apt-get install ninja-build
+
+      - name: Configure project (Clang)
+        if: ${{ matrix.compiler == 'Clang' }}
+        run: >
+          cmake --preset=${{ matrix.arch }} -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+          -DMJSTR_BUILD_DEPENDENCIES=ON -DMJSTR_BUILD_BENCHMARKS=ON -DMJSTR_BUILD_TESTS=ON -DMJSTR_INSTALL_LIBRARY=ON
+
+      - name: Configure project (GCC)
+        if: ${{ matrix.compiler == 'GCC' }}
+        run: >
+          cmake --preset=${{ matrix.arch }} -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++
+          -DMJSTR_BUILD_DEPENDENCIES=ON -DMJSTR_BUILD_BENCHMARKS=ON -DMJSTR_BUILD_TESTS=ON -DMJSTR_INSTALL_LIBRARY=ON
 
       - name: Build project
         run: |

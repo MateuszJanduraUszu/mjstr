@@ -39,8 +39,8 @@ namespace mjx {
         static void copy(char_type* const _Dest, const char_type* const _Src, const size_t _Count) noexcept;
 
         // lexicographically compares two character sequence
-        static int compare(const char_type* const _Left, const size_t _Left_size,
-            const char_type* const _Right, const size_t _Right_size) noexcept;
+        static int compare(
+            const char_type* const _Left, const char_type* const _Right, const size_t _Count) noexcept;
 
         // returns the length of a character sequence
         static size_t length(const char_type* const _Str) noexcept;
