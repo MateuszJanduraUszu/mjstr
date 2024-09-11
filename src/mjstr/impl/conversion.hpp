@@ -24,7 +24,6 @@ namespace mjx {
         //       UCS-4 code points, which also rely on a 4-byte wchar_t type.
         static_assert(sizeof(wchar_t) == 4, "unexpected wchar_t size");
 
-        template <class _Elem>
         constexpr size_t _Calculate_utf8_encoded_length(const wchar_t* _Chars, const size_t _Size) noexcept {
             // calculate the length of the UTF-8 encoded string from _Chars
             const wchar_t* const _Last = _Chars + _Size;
