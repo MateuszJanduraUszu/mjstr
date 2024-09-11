@@ -13,11 +13,149 @@
 #ifdef _MJX_WINDOWS
 #include <mjstr/impl/tinywin.hpp>
 #else // ^^^ _MJX_WINDOWS ^^^ / vvv _MJX_LINUX vvv
-#include <cstdlib>
+#include <cstdint>
 #endif // _MJX_WINDOWS
 
 namespace mjx {
     namespace mjstr_impl {
+#ifdef _MJX_LINUX
+        // Note: On Linux, Unicode characters are typically stored in UTF-32 encoding,
+        //       which means wchar_t should be 4 bytes long. This implementation handles
+        //       UCS-4 code points, which also rely on a 4-byte wchar_t type.
+        static_assert(sizeof(wchar_t) == 4, "unexpected wchar_t size");
+
+        template <class _Elem>
+        constexpr size_t _Calculate_utf8_encoded_length(const wchar_t* _Chars, const size_t _Size) noexcept {
+            // calculate the length of the UTF-8 encoded string from _Chars
+            const wchar_t* const _Last = _Chars + _Size;
+            size_t _Count              = 0;
+            uint32_t _Code_point;
+            for (; _Chars != _Last; ++_Chars) {
+                _Code_point = static_cast<uint32_t>(*_Chars);
+                if (_Code_point <= 0x7F) { // U+0000...U+007F, single byte
+                    ++_Count;
+                } else if (_Code_point <= 0x07FF) { // U+0080...U+07FF, two bytes
+                    _Count += 2;
+                } else if (_Code_point <= 0xFFFF) { // U+0800...U+FFFF, three bytes
+                    _Count += 3;
+                } else if (_Code_point <= 0x0010'FFFF) { // U+010000...U+01FFFF, four bytes
+                    _Count += 4;
+                } else { // invalid code point (too big), break
+                    return static_cast<size_t>(-1);
+                }
+            }
+
+            return _Count;
+        }
+
+        template <class _Elem>
+        constexpr bool _Encode_utf8(const wchar_t* _Chars, const size_t _Size, _Elem* _Buf) noexcept {
+            // encode _Chars to UTF-8 and write to _Buf, assumes _Buf can fit all bytes
+            const wchar_t* const _Last = _Chars + _Size;
+            size_t _Trailing;
+            uint32_t _Code_point;
+            for (; _Chars != _Last; ++_Chars) {
+                _Code_point = static_cast<uint32_t>(*_Chars);
+                if (_Code_point <= 0x7F) { // U+0000...U+007F, single byte
+                    *_Buf++   = static_cast<_Elem>(_Code_point);
+                    _Trailing = 0;
+                } else if (_Code_point <= 0x07FF) { // U+0080...U+07FF, two bytes
+                    *_Buf++   = static_cast<_Elem>(0xC0 | (_Code_point >> 6));
+                    _Trailing = 1;
+                } else if (_Code_point <= 0xFFFF) { // U+0800...U+FFFF, three bytes
+                    *_Buf++   = static_cast<_Elem>(0xE0 | (_Code_point >> 12));
+                    _Trailing = 2;
+                } else if (_Code_point <= 0x0010'FFFF) { // U+010000...U+10FFFF, four bytes
+                    *_Buf++   = static_cast<_Elem>(0xF0 | (_Code_point >> 18));
+                    _Trailing = 3;
+                } else { // invalid code point (too big), break
+                    return false;
+                }
+
+                for (; _Trailing > 0; ++_Buf) { // append trailing bytes, if any
+                    *_Buf = static_cast<_Elem>(0x80 | ((_Code_point >> (6 * --_Trailing)) & 0x3F));
+                }
+            }
+
+            return true;
+        }
+
+        template <class _Elem>
+        constexpr size_t _Calculate_utf8_decoded_length(const _Elem* _Bytes, const size_t _Size) noexcept {
+            // calculate the length of the UTF-8 decoded string from _Bytes
+            const _Elem* const _Last = _Bytes + _Size;
+            size_t _Count            = 0;
+            size_t _Trailing;
+            uint8_t _Byte;
+            for (; _Bytes != _Last; ++_Count) {
+                _Byte = static_cast<uint8_t>(*_Bytes++);
+                if (_Byte <= 0x7F) { // 0XXXXXXX pattern, single byte
+                    _Trailing = 0;
+                } else if (_Byte >= 0xC0 && _Byte <= 0xDF) { // 110XXXXX pattern, two bytes
+                    _Trailing = 1;
+                } else if (_Byte <= 0xEF) { // 1110XXXX pattern, three bytes
+                    _Trailing = 2;
+                } else if (_Byte <= 0xF7) { // 11110XXX pattern, four bytes
+                    _Trailing = 3;
+                } else { // invalid leading byte, break
+                    return static_cast<size_t>(-1);
+                }
+
+                if (_Last - _Bytes < _Trailing) { // incomplete sequence, break
+                    return static_cast<size_t>(-1);
+                }
+
+                _Bytes += _Trailing;
+            }
+
+            return _Count;
+        }
+
+        template <class _Elem>
+        constexpr bool _Decode_utf8(const _Elem* _Bytes, const size_t _Size, wchar_t* _Buf) noexcept {
+            // decode _Bytes to Unicode and write to _Buf, assumes _Buf can fit all characters
+            const _Elem* const _Last = _Bytes + _Size;
+            size_t _Trailing;
+            uint8_t _Byte;
+            uint32_t _Code_point;
+            while (_Bytes != _Last) {
+                _Byte = static_cast<uint8_t>(*_Bytes++);
+                if (_Byte <= 0x7F) { // 0XXXXXXX pattern, single byte
+                    _Code_point = static_cast<uint32_t>(_Byte);
+                    _Trailing   = 0;
+                } else if (_Byte >= 0xC0 && _Byte <= 0xDF) { // 110XXXXX pattern, two bytes
+                    _Code_point = static_cast<uint32_t>(_Byte & 0x1F);
+                    _Trailing   = 1;
+                } else if (_Byte <= 0xEF) { // 1110XXXX pattern, three bytes
+                    _Code_point = static_cast<uint32_t>(_Byte & 0x0F);
+                    _Trailing   = 2;
+                } else if (_Byte <= 0xF7) { // 11110XXX pattern, four bytes
+                    _Code_point = static_cast<uint32_t>(_Byte & 0x07);
+                    _Trailing   = 3;
+                } else { // invalid leading byte, break
+                    return false;
+                }
+
+                if (_Last - _Bytes < _Trailing) { // incomplete sequence, break
+                    return false;
+                }
+
+                while (_Trailing-- > 0) {
+                    _Byte = static_cast<uint8_t>(*_Bytes++);
+                    if (_Byte < 0x80 || _Byte > 0xBF) { // invalid trailing byte, break
+                        return false;
+                    }
+
+                    _Code_point = (_Code_point << 6) | (_Byte & 0x3F);
+                }
+
+                *_Buf++ = static_cast<wchar_t>(_Code_point);
+            }
+
+            return true;
+        }
+#endif // _MJX_LINUX
+
         template <class _Multibyte>
         struct _Multibyte_to_wide_traits { // traits for conversion from byte/UTF-8 to Unicode
             using _Intern_type = _Multibyte;
@@ -34,8 +172,7 @@ namespace mjx {
                     reinterpret_cast<const char*>(_Str), static_cast<int>(_Size), nullptr, 0);
                 return _Req_size > 0 ? static_cast<size_t>(_Req_size) : static_cast<size_t>(-1);
 #else // ^^^ _MJX_WINDOWS ^^^ / vvv _MJX_LINUX vvv
-                (void) _Size;
-                return ::mbstowcs(nullptr, reinterpret_cast<const char*>(_Str), 0);
+                return _Calculate_utf8_decoded_length(_Str, _Size);
 #endif // _MJX_WINDOWS
             }
 
@@ -47,8 +184,8 @@ namespace mjx {
                     reinterpret_cast<const char*>(_Str), static_cast<int>(_Str_size),
                         _Buf, static_cast<int>(_Buf_size))) == _Buf_size;
 #else // ^^^ _MJX_WINDOWS ^^^ / vvv _MJX_LINUX vvv
-                (void) _Str_size;
-                return ::mbstowcs(_Buf, reinterpret_cast<const char*>(_Str), _Buf_size) == _Buf_size;
+                (void) _Buf_size;
+                return _Decode_utf8(_Str, _Str_size, _Buf);
 #endif // _MJX_WINDOWS
             }
         };
@@ -69,8 +206,7 @@ namespace mjx {
                     _Str, static_cast<int>(_Size), nullptr, 0, nullptr, nullptr);
                 return _Req_size > 0 ? static_cast<size_t>(_Req_size) : static_cast<size_t>(-1);
 #else // ^^^ _MJX_WINDOWS ^^^ / vvv _MJX_LINUX vvv
-                (void) _Size;
-                return ::wcstombs(nullptr, _Str, 0);
+                return _Calculate_utf8_encoded_length(_Str, _Size);
 #endif // _MJX_WINDOWS
             }
 
@@ -82,8 +218,8 @@ namespace mjx {
                     _Str, static_cast<int>(_Str_size), reinterpret_cast<char*>(_Buf),
                         static_cast<int>(_Buf_size), nullptr, nullptr)) == _Buf_size;
 #else // ^^^ _MJX_WINDOWS ^^^ / vvv _MJX_LINUX vvv
-                (void) _Str_size;
-                return ::wcstombs(reinterpret_cast<char*>(_Buf), _Str, _Buf_size) == _Buf_size;
+                (void) _Buf_size;
+                return _Encode_utf8(_Str, _Str_size, _Buf);
 #endif // _MJX_WINDOWS
             }
         };
