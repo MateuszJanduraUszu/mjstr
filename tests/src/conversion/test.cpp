@@ -5,25 +5,13 @@
 
 #include <gtest/gtest.h>
 #include <mjstr/conversion.hpp>
-#ifdef _MJX_LINUX
-#include <clocale>
-#endif // _MJX_LINUX
+
+#ifdef _MJX_MSVC
+#pragma warning(push, 1)
+#pragma warning(disable : 4566) // C4566: character cannot be represented in the current code page
+#endif // _MJX_MSVC
 
 namespace mjx {
-#ifdef _MJX_LINUX
-    // Note: On Linux, C standard library functions are used to perform conversions between Unicode and UTF-8.
-    //       However, these functions rely on the current locale, which by default is the classic locale that
-    //       doesn't support such conversions. Until a different approach is implemented, a simple workaround
-    //       is to set the locale to one that supports UTF-8 conversions, such as English (United States).
-    struct _Set_utf8_aware_locale_fn {
-        _Set_utf8_aware_locale_fn() noexcept {
-            ::setlocale(LC_ALL, "en_US.UTF-8");
-        }
-    };
-
-    _Set_utf8_aware_locale_fn _Set_utf8_aware_locale;
-#endif // _MJX_LINUX
-
     TEST(utf8_to_unicode, empty_string) {
         EXPECT_TRUE(::mjx::to_unicode_string("").empty());
     }
@@ -83,3 +71,7 @@ namespace mjx {
         );
     }
 } // namespace mjx
+
+#ifdef _MJX_MSVC
+#pragma warning(pop)
+#endif // _MJX_MSVC
