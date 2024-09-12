@@ -116,21 +116,26 @@ namespace mjx {
             const _Elem* const _Last = _Bytes + _Size;
             size_t _Trailing;
             uint8_t _Byte;
+            uint32_t _Least_code_point;
             uint32_t _Code_point;
             while (_Bytes != _Last) {
                 _Byte = static_cast<uint8_t>(*_Bytes++);
                 if (_Byte <= 0x7F) { // 0XXXXXXX pattern, single byte
-                    _Code_point = static_cast<uint32_t>(_Byte);
-                    _Trailing   = 0;
+                    _Least_code_point = 0x00;
+                    _Code_point       = static_cast<uint32_t>(_Byte);
+                    _Trailing         = 0;
                 } else if (_Byte >= 0xC0 && _Byte <= 0xDF) { // 110XXXXX pattern, two bytes
-                    _Code_point = static_cast<uint32_t>(_Byte & 0x1F);
-                    _Trailing   = 1;
+                    _Least_code_point = 0x80;
+                    _Code_point       = static_cast<uint32_t>(_Byte & 0x1F);
+                    _Trailing         = 1;
                 } else if (_Byte <= 0xEF) { // 1110XXXX pattern, three bytes
-                    _Code_point = static_cast<uint32_t>(_Byte & 0x0F);
-                    _Trailing   = 2;
+                    _Least_code_point = 0x0800;
+                    _Code_point       = static_cast<uint32_t>(_Byte & 0x0F);
+                    _Trailing         = 2;
                 } else if (_Byte <= 0xF7) { // 11110XXX pattern, four bytes
-                    _Code_point = static_cast<uint32_t>(_Byte & 0x07);
-                    _Trailing   = 3;
+                    _Least_code_point = 0x0001'0000;
+                    _Code_point       = static_cast<uint32_t>(_Byte & 0x07);
+                    _Trailing         = 3;
                 } else { // invalid leading byte, break
                     return false;
                 }
@@ -146,6 +151,10 @@ namespace mjx {
                     }
 
                     _Code_point = (_Code_point << 6) | (_Byte & 0x3F);
+                }
+
+                if (_Code_point < _Least_code_point) { // overlong encoding detected, break
+                    return false;
                 }
 
                 *_Buf++ = static_cast<wchar_t>(_Code_point);
