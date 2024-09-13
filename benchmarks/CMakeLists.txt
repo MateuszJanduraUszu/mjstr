@@ -31,6 +31,18 @@ function(add_isolated_benchmark benchmark_name benchmark_path)
     endif()
 endfunction()
 
-# Currently, there are no benchmarks available for the existing build system.
-# However, additional benchmarks will be developed and added while working on
-# the upcoming tasks to improve the performance evaluation coverage.
+add_isolated_benchmark(benchmark_conversion "src/conversion/benchmark.cpp")
+
+# use a custom target to combine all targets into a single one,
+# this allows only one post-build call instead of per-benchmark copying
+add_custom_target(mjstr_and_benchmarks ALL DEPENDS
+    mjstr
+    mjmem # register dependencies as well
+    benchmark_conversion
+)
+add_custom_command(TARGET mjstr_and_benchmarks POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "$<TARGET_FILE:mjmem>"
+    "$<TARGET_FILE:mjstr>"
+    "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIG>" # copy to the benchmarks' output directory
+)
